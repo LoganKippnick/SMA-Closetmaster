@@ -1,0 +1,115 @@
+{
+  "commands": {
+    "next rehearsal": {
+      "for rehearsal": "**{band}**\n{date:%A, %#m/%#d} {start:%#I:%M %p} - {end:%#I:%M %p}",
+      "join rehearsals": "\n\n",
+      "no rehearsals": "No upcoming rehearsals."
+    },
+    "next request": {
+      "for request": "**{name}**\n{date:%A, %#m/%#d} {start:%#I:%M %p} - {end:%#I:%M %p}",
+      "join requests": "\n\n",
+      "no requests": "No upcoming requests."
+    },
+    "get code": "Current code: `{code}`",
+    "get code expiration": "Change code next on {expiration:%A, %#m/%#d}.",
+    "update code": "Code updated to `{code}`. Change next on {expiration:%A, %#m/%#d}.",
+    "set code": "Code set to `{code}`. Change next on {expiration:%A, %#m/%#d}.",
+    "set code expiration": "Next code change reminder will be on {expiration:%A, %#m/%#d}.",
+    "add band": "Band \"{name}\" added.",
+    "list bands": {
+      "for band": "{name}",
+      "join bands": "\n",
+      "no bands": "There are currently no bands."
+    },
+    "remove band": "Band \"{name}\" removed.",
+    "change band name": "Name of band \"{old name}\" to \"{new name}\".",
+    "change setting": "Setting `{name}` changed to value {formatted value}.",
+    "list settings": {
+      "for setting": "**{name}**: {formatted value} ({type})\n{description}",
+      "join settings": "\n\n"
+    },
+    "update calendar": "Calendar manually updated.",
+    "add greeting": "Greeting \"{greeting}\" added to category `{category}`.",
+    "remove greeting": "Greeting \"{greeting}\" removed.",
+    "list greetings": {
+      "for greeting": "\"{greeting}\"",
+      "join greetings": " ",
+      "for category": "**{category}**\n{greetings}",
+      "join categories": "\n\n"
+    },
+    "add farewell": "Farewell \"{farewell}\" added to category `{category}`.",
+    "remove farewell": "Farewell \"{farewell}\" removed.",
+    "list farewells": {
+      "for farewell": "\"{farewell}\"",
+      "join farewells": " ",
+      "for category": "**{category}**\n{farewells}",
+      "join categories": "\n\n"
+    },
+    "list commands": {
+      "for command": "**{name}** {params}\n{description}",
+      "join commands": "\n\n"
+    },
+    "roll": {
+      "start": "Rolling {num} {formatted type}...",
+      "default": "You rolled {article} `{roll}`!",
+      "min": "You rolled {article} `{roll}`. Womp womp.",
+      "max": "You rolled {article} `{roll}`! The spirit of Ozzy blesses you.",
+      "join rolls": "\n"
+    },
+    "bad command": "Unrecognized command. For full list, try command \"help\".",
+    "error": "{error}\nUsage: {name} {params}"
+  },
+  "messages": {
+    "rehearsal code": "{greeting} {mention}\nThe lockbox code is `{code}`.\n{farewell}",
+    "request code": {
+      "message": "{greeting} {mention}\nThe lockbox code is `{code}`. Please be sure to share this with the requestees for the following requests:\n{requests}",
+      "for request": "- {name} ({start:%#I:%M %p} - {end:%#I:%M %p})",
+      "join requests": "\n"
+    },
+    "quartermaster change reminder": "{greeting} {mention}\nChange the code today to `{code}`. Once you set it, run command \"update code\".\n{farewell}",
+    "quartermaster change re-reminder": "{greeting} {mention}\nThe code remains unchanged. Set it to `{code}`.\n{farewell}",
+    "picture before rehearsal reminder": "{greeting} {mention}\nPlease remember to send a picture of the closet before taking gear.\n{farewell}",
+    "picture after rehearsal reminder": "{greeting} {mention}\nPlease remember to send a picture of the closet after putting gear away.\n{farewell}",
+    "band greeting": "{greeting} {mention}\nI'm {name}, and I'll give you the lockbox code before each of your rehearsals! You can check your gear requests on [this Google Calendar]({url}).\nHappy rehearsing!"
+  },
+  "greetings": {
+    "general": [
+      "Hello!",
+      "Howdy!",
+      "Hey!",
+      "Greetings!",
+      "Hi!"
+    ],
+    "morning": [
+      "Good morning!"
+    ],
+    "day": [
+      "Good day!"
+    ],
+    "afternoon": [
+      "Good afternoon!"
+    ],
+    "evening": [
+      "Good evening!"
+    ]
+  },
+  "farewells": {
+    "general": [
+      "Have a good one!",
+      "Have a good rest of your day!",
+      "Have a great rest of your day!",
+      "Rock on! \ud83e\udd18"
+    ],
+    "day": [
+      "Have a good day!"
+    ],
+    "night": [
+      "Have a good night!"
+    ],
+    "rehearsal": [
+      "Happy rehearsal!",
+      "Have a good rehearsal! \ud83c\udfb5 ",
+      "Have a great rehearsal! \ud83c\udfb6"
+    ]
+  }
+}

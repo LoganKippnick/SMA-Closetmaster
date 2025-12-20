@@ -1,0 +1,79 @@
+{
+  "get code": {
+    "description": "Displays the current lockbox code."
+  },
+  "get code expiration": {
+    "description": "Displays when to change the lockbox code next."
+  },
+  "update code": {
+    "description": "Applies the next lockbox code and displays when to change it next."
+  },
+  "set code": {
+    "params": "<4-digit code>",
+    "description": "Updates the lockbox code to the given code."
+  },
+  "set code expiration": {
+    "params": "<date>",
+    "description": "Updates the code change reminder to happen on the given date. Date can be in any parsable format."
+  },
+  "list bands": {
+    "description": "Lists the names of the bands recognized."
+  },
+  "add band": {
+    "params": "<name> <@role> <#channel> <optional: send greeting>",
+    "description": "Adds a band with the given name, role, and channel. Sends a greeting message to the band if parameter is not given or is \"true\"."
+  },
+  "set band name": {
+    "params": "<current name> <new name>",
+    "description": "Updates the name of the band with the given name to the new name."
+  },
+  "remove band": {
+    "params": "<name>",
+    "description": "Removes the band with the given name."
+  },
+  "next rehearsal": {
+    "description": "Displays the details of the next rehearsal. Displays all with the same start time."
+  },
+  "next request": {
+    "description": "Displays the details of the next gear request that is not a rehearsal. Displays all with the same start time."
+  },
+  "list greetings": {
+    "description": "Lists the greetings set for each category."
+  },
+  "add greeting": {
+    "params": "<greeting> <optional: category>",
+    "description": "Adds the given greeting to the given category of greetings. If not given, \"general\" is the default category."
+  },
+  "remove greeting": {
+    "params": "<greeting>",
+    "description": "Removes all instances of the greeting from the list of greetings."
+  },
+  "list farewells": {
+    "description": "Lists the farewells set for each category."
+  },
+  "add farewell": {
+    "params": "<farewell> <optional: category>",
+    "description": "Adds the given farewell to the given category of farewells. If not given, \"general\" is the default category."
+  },
+  "remove farewell": {
+    "params": "<farewell>",
+    "description": "Removes all instances of the given farewell from the list of farewells."
+  },
+  "roll": {
+    "params": "<optional: size of dice> <optional: num of dice>",
+    "description": "Rolls the given number of dice of the given size. Default is a single d20."
+  },
+  "list settings": {
+    "description": "Lists all settings and their current values."
+  },
+  "set setting": {
+    "params": "<setting_name> <value>",
+    "description": "Sets the setting with the given name to the given value."
+  },
+  "list commands": {
+    "description": "Lists all commands and their usages."
+  },
+  "help": {
+    "description": "Same as \"list commands\"."
+  }
+}

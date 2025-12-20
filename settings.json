@@ -1,0 +1,92 @@
+{
+  "gear_calendar_id": {
+    "value": "b62f0ce688af06db86253c47daf6f972af67b0969e5965f776b1e4d077772b28@group.calendar.google.com",
+    "type": "str",
+    "description": "Google Calendar ID of gear requests calendar"
+  },
+  "gear_calendar_url": {
+    "value": "https://calendar.google.com/calendar/embed?src=b62f0ce688af06db86253c47daf6f972af67b0969e5965f776b1e4d077772b28%40group.calendar.google.com&ctz=America%2FNew_York",
+    "type": "str",
+    "description": "The public URL to the gear calendar to share with bands"
+  },
+  "timezone": {
+    "value": "America/New_York",
+    "type": "tz str",
+    "description": "Name of time zone gear closet is in"
+  },
+  "calendar_refresh_mins": {
+    "value": 360,
+    "type": "uint",
+    "description": "Number of minutes between refreshes of gear request calendar"
+  },
+  "admin_role": {
+    "value": "<@&484152700724838401>",
+    "type": "@role",
+    "description": "Role to grant access of commands to"
+  },
+  "quartermaster_channel": {
+    "value": "<#1362155001547456594>",
+    "type": "#channel",
+    "description": "Channel to remind the quartermaster to change the lockbox code in"
+  },
+  "quartermaster_role": {
+    "value": "<@&1199042155113611324>",
+    "type": "@role",
+    "description": "Role of quartermaster role to mention in reminders to change the lockbox code"
+  },
+  "change_code_reminder_time": {
+    "value": "09:00:00",
+    "type": "time",
+    "description": "Time (in ISO format) to send reminder to change lockbox code"
+  },
+  "change_code_re-reminder_hours": {
+    "value": 48,
+    "type": "uint",
+    "description": "Number of hours after initial reminder to re-remind quartermaster to change lockbox code if not done so (set to `0` to disable)"
+  },
+  "min_change_code_days": {
+    "value": 3,
+    "type": "uint",
+    "description": "Minimum number of days between code change reminders"
+  },
+  "weekend_change_code_reminder_mode": {
+    "value": 0,
+    "type": "uint",
+    "description": "Manner to set codes to expire on weekends. One of `0`: Only weekdays, `1`: Include Saturdays, `2`: Include Sundays, `3`: All days of the week"
+  },
+  "quartermaster_reminder_time_mins": {
+    "value": 15,
+    "type": "uint",
+    "description": "Number of minutes before setup time to inform the quartermaster of requests not associated with a band"
+  },
+  "quartermaster_request_range_mins": {
+    "value": 30,
+    "type": "uint:",
+    "description": "Range of minutes after scheduled request not associated with a band to search for events to add to the quartermaster reminder message"
+  },
+  "setup_time_mins": {
+    "value": 15,
+    "type": "uint",
+    "description": "Number of minutes before a band's rehearsal to send the lockbox code"
+  },
+  "picture_before_reminder_mode": {
+    "value": 0,
+    "type": "uint",
+    "description": "Manner to send reminders to send picture of closet before rehearsal. One of `0`: Never, `1`: Only if start of rehearsal is not overlapping or adjacent, `2`: Always"
+  },
+  "picture_before_reminder_mins": {
+    "value": 5,
+    "type": "uint",
+    "description": "Number of minutes into a band's rehearsal to send reminder to send picture of closet (if setting enabled and image not already sent)"
+  },
+  "picture_after_reminder_mode": {
+    "value": 1,
+    "type": "uint",
+    "description": "Manner to send reminders to send picture of closet after rehearsal. One of, `0`: Never, `1`: Only if end of rehearsal is not overlapping or adjacent, `2`: Always"
+  },
+  "teardown_time_mins": {
+    "value": 15,
+    "type": "uint",
+    "description": "Number of minutes after a band's rehearsal to send reminder to send picture of closet (if setting enabled and image not already sent)"
+  }
+}
