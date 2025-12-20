@@ -232,8 +232,8 @@ def list_settings():
     return settings_msgs
 
 
-def update_calendar():
-    return content_manager.get_command('update calendar')
+def refresh_calendar():
+    return content_manager.get_command('refresh calendar')
 
 
 def add_greeting(message):

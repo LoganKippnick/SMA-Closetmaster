@@ -45,7 +45,7 @@ async def on_ready():
     schedule_change_reminder_msg()
 
     # Schedule calendar updates to start at midnight
-    schedule_update_calendar(datetime.today() + timedelta(days=1))
+    schedule_refresh_calendar(datetime.today() + timedelta(days=1))
 
 
 @client.event
@@ -96,9 +96,9 @@ async def on_message(message):
         reply = commands.set_setting(content)
     elif content_lower.startswith('list settings'):
         reply = commands.list_settings()
-    elif content_lower.startswith('update calendar'):
-        update_calendar(False)
-        reply = commands.update_calendar()
+    elif content_lower.startswith('refresh calendar'):
+        refresh_calendar(False)
+        reply = commands.refresh_calendar()
     elif content_lower.startswith('add greeting'):
         reply = commands.add_greeting(content)
     elif content_lower.startswith('remove greeting'):
@@ -239,7 +239,7 @@ async def picture_after_reminder_msg(rehearsal_start, rehearsal_end, band):
         await channel.send(msg)
 
 
-def update_calendar(schedule_next=True):
+def refresh_calendar(schedule_next=True):
     """Reschedules the lockbox code messages for bands' rehearsals in case new events have been added in the meantime."""
     # Cancel previously scheduled rehearsal messages
     band_msg_scheduler.remove_all_jobs()
@@ -248,7 +248,7 @@ def update_calendar(schedule_next=True):
     schedule_request_msg()
 
     if schedule_next:
-        schedule_update_calendar()
+        schedule_refresh_calendar()
 
 
 def schedule_rehearsal_msgs(after=None):
@@ -323,14 +323,14 @@ def schedule_change_re_reminder_msg():
         qm_msg_scheduler.add_job(change_re_reminder_msg, 'date', run_date=send_dt, args=[send_dt.time()], id='change re-reminder', replace_existing=True)
 
 
-def schedule_update_calendar(update_dt=None):
+def schedule_refresh_calendar(update_dt=None):
     """Schedules the update of scheduled messages."""
     if update_dt is None:
         update_dt = datetime.now(tz=datetime.timezone.utc) + timedelta(minutes=settings_manager.get_setting('calendar_refresh_mins'))
         # Truncate time to minutes to prevent drift
         update_dt = update_dt.replace(second=0, microsecond=0)
 
-    update_scheduler.add_job(update_calendar, 'date', run_date=update_dt, args=[], id='calendar update')
+    update_scheduler.add_job(refresh_calendar, 'date', run_date=update_dt, args=[], id='calendar update')
 
 
 async def band_greeting_msg(band):

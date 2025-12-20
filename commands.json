@@ -37,6 +37,9 @@
   "next request": {
     "description": "Displays the details of the next gear request that is not a rehearsal. Displays all with the same start time."
   },
+  "refresh calendar": {
+    "description": "Manually updates gear requests from the calendar and reschedules gear request messages."
+  },
   "list greetings": {
     "description": "Lists the greetings set for each category."
   },

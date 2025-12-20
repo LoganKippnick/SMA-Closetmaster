@@ -10,6 +10,7 @@
       "join requests": "\n\n",
       "no requests": "No upcoming requests."
     },
+    "refresh calendar": "Calendar manually updated.",
     "get code": "Current code: `{code}`",
     "get code expiration": "Change code next on {expiration:%A, %-m/%-d}.",
     "update code": "Code updated to `{code}`. Change next on {expiration:%A, %-m/%-d}.",
@@ -28,7 +29,6 @@
       "for setting": "**{name}**: {formatted value} ({type})\n{description}",
       "join settings": "\n\n"
     },
-    "update calendar": "Calendar manually updated.",
     "add greeting": "Greeting \"{greeting}\" added to category `{category}`.",
     "remove greeting": "Greeting \"{greeting}\" removed.",
     "list greetings": {
