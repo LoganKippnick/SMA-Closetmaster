@@ -1,20 +1,20 @@
 {
   "commands": {
     "next rehearsal": {
-      "for rehearsal": "**{band}**\n{date:%A, %#m/%#d} {start:%#I:%M %p} - {end:%#I:%M %p}",
+      "for rehearsal": "**{band}**\n{date:%A, %-m/%-d} {start:%-I:%M %p} - {end:%-I:%M %p}",
       "join rehearsals": "\n\n",
       "no rehearsals": "No upcoming rehearsals."
     },
     "next request": {
-      "for request": "**{name}**\n{date:%A, %#m/%#d} {start:%#I:%M %p} - {end:%#I:%M %p}",
+      "for request": "**{name}**\n{date:%A, %-m/%-d} {start:%-I:%M %p} - {end:%-I:%M %p}",
       "join requests": "\n\n",
       "no requests": "No upcoming requests."
     },
     "get code": "Current code: `{code}`",
-    "get code expiration": "Change code next on {expiration:%A, %#m/%#d}.",
-    "update code": "Code updated to `{code}`. Change next on {expiration:%A, %#m/%#d}.",
-    "set code": "Code set to `{code}`. Change next on {expiration:%A, %#m/%#d}.",
-    "set code expiration": "Next code change reminder will be on {expiration:%A, %#m/%#d}.",
+    "get code expiration": "Change code next on {expiration:%A, %-m/%-d}.",
+    "update code": "Code updated to `{code}`. Change next on {expiration:%A, %-m/%-d}.",
+    "set code": "Code set to `{code}`. Change next on {expiration:%A, %-m/%-d}.",
+    "set code expiration": "Next code change reminder will be on {expiration:%A, %-m/%-d}.",
     "add band": "Band \"{name}\" added.",
     "list bands": {
       "for band": "{name}",
@@ -63,7 +63,7 @@
     "rehearsal code": "{greeting} {mention}\nThe lockbox code is `{code}`.\n{farewell}",
     "request code": {
       "message": "{greeting} {mention}\nThe lockbox code is `{code}`. Please be sure to share this with the requestees for the following requests:\n{requests}",
-      "for request": "- {name} ({start:%#I:%M %p} - {end:%#I:%M %p})",
+      "for request": "- {name} ({start:%-I:%M %p} - {end:%-I:%M %p})",
       "join requests": "\n"
     },
     "quartermaster change reminder": "{greeting} {mention}\nChange the code today to `{code}`. Once you set it, run command \"update code\".\n{farewell}",
