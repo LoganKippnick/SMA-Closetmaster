@@ -61,8 +61,6 @@ def generate_expires_date():
 
         expire_delta = timedelta(days=days_until_sunday + random.randint(min_days, num_days))
 
-    print(expire_delta.days)
-
     return date.today() + expire_delta
 
 
@@ -85,6 +83,8 @@ def generate_next_code():
 def apply_next_code():
     """Sets the next code to the current code and generates a new next code"""
     json_data['curr_code'] = json_data['next_code']
+    write_json()
+
     generate_next_code()
 
 

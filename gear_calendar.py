@@ -18,12 +18,20 @@ gear_calendar_id = settings_manager.get_setting('gear_calendar_id')
 tz = settings_manager.get_timezone()
 
 
+def request_is_rehearsal(request):
+    name = request['summary']
+    event = name.split(' ')[-1].lower()
+    band = ' '.join(name.split(' ')[:-1])
+
+    return event == 'rehearsal' and band_manager.get_band(band) is not None
+
+
 def format_rehearsal_event(request):
     name = request['summary']
     event = name.split(' ')[-1].lower()
     band = ' '.join(name.split(' ')[:-1])
 
-    if event != 'rehearsal' or 'dateTime' not in request['start'] or band_manager.get_band(band) is None:
+    if 'dateTime' not in request['start'] or not request_is_rehearsal(request):
         return None
 
     start = datetime.fromisoformat(request['start']['dateTime']).astimezone(tz)
@@ -35,7 +43,7 @@ def format_rehearsal_event(request):
 def format_request_event(request):
     name = request['summary']
 
-    if 'dateTime' not in request['start']:
+    if 'dateTime' not in request['start'] or request_is_rehearsal(request):
         return None
 
     start = datetime.fromisoformat(request['start']['dateTime']).astimezone(tz)
@@ -110,7 +118,9 @@ def get_next_events(after=None):
     events = []
 
     for i in range(len(items)):
-        if datetime.fromisoformat(items[i]['start']['dateTime']) >= after:
+        if not 'dateTime' in items[i]['start'].keys():
+            break
+        elif datetime.fromisoformat(items[i]['start']['dateTime']) >= after:
             events = items[i:]
             break
 
@@ -121,19 +131,13 @@ def get_curr_events(date=None):
     if date is None:
         date = datetime.now(tz=timezone.utc)
 
-    print(date.isoformat())
-
     items = get_calendar_items(date)
     events = []
 
     for i in range(len(items)):
-        print(items[i]['end']['dateTime'], end='\t')
         if datetime.fromisoformat(items[i]['start']['dateTime']) > date:
             events = items[:i]
-            print(i)
             break
-        else:
-            print(False)
 
     return events
 
@@ -179,8 +183,6 @@ def get_requests_in_range(start, end, include_start=False, include_end=False):
     requests = []
 
     for event in events:
-        if 'summary' not in event:
-            print(event)
         request = format_request_event(event)
         if request is not None:
             requests.append(request)

@@ -310,6 +310,43 @@ def list_farewells():
     return content_manager.get_command(cmd_name)['join categories'].join(categories)
 
 
+def add_thank_you_reply(message):
+    cmd_name = 'add thank you reply'
+    try:
+        args = parse_args(cmd_name, message, expected_num_args=1)
+        reply = args[0]
+        content_manager.add_thank_you_reply(reply)
+        return content_manager.format_command(content_manager.get_command(cmd_name), {'reply': reply})
+    except ValueError as e:
+        return throw_error(cmd_name, e)
+
+def remove_thank_you_reply(message):
+    cmd_name = 'remove thank you reply'
+    try:
+        args = parse_args(cmd_name, message, expected_num_args=1)
+        reply = args[0]
+        content_manager.remove_thank_you_reply(reply)
+        return content_manager.format_command(content_manager.get_command(cmd_name), {'reply': reply})
+    except ValueError as e:
+        return throw_error(cmd_name, e)
+
+
+def list_thank_you_replies():
+    cmd_name = 'list thank you replies'
+    replies_data = content_manager.get_thank_you_replies()
+    content_data = content_manager.get_command(cmd_name)
+    replies = []
+    for reply in replies_data:
+        replies.append(content_manager.format_command(content_data['for reply'], {'reply': reply}))
+    return content_manager.get_command(cmd_name)['join replies'].join(replies)
+
+
+def export_configs():
+    cmd_name = 'export configs'
+    jsons = ['bands.json', 'commands.json', 'content.json', 'lockbox_code.json', 'settings.json']
+    return content_manager.get_command(cmd_name), jsons
+
+
 def list_commands():
     cmd_name = 'list commands'
     commands_msgs = []

@@ -24,7 +24,7 @@
     },
     "remove band": "Band \"{name}\" removed.",
     "change band name": "Name of band \"{old name}\" to \"{new name}\".",
-    "change setting": "Setting `{name}` changed to value {formatted value}.",
+    "set setting": "Setting `{name}` changed to value {formatted value}.",
     "list settings": {
       "for setting": "**{name}**: {formatted value} ({type})\n{description}",
       "join settings": "\n\n"
@@ -45,6 +45,13 @@
       "for category": "**{category}**\n{farewells}",
       "join categories": "\n\n"
     },
+    "add thank you reply": "Thank you reply \"{reply}\" added.",
+    "remove thank you reply": "Thank you reply \"{reply}\" removed.",
+    "list thank you replies": {
+      "for reply": "\"{reply}\"",
+      "join replies": " "
+    },
+    "export configs": "Config .json files attached:",
     "list commands": {
       "for command": "**{name}** {params}\n{description}",
       "join commands": "\n\n"
@@ -70,7 +77,8 @@
     "quartermaster change re-reminder": "{greeting} {mention}\nThe code remains unchanged. Set it to `{code}`.\n{farewell}",
     "picture before rehearsal reminder": "{greeting} {mention}\nPlease remember to send a picture of the closet before taking gear.\n{farewell}",
     "picture after rehearsal reminder": "{greeting} {mention}\nPlease remember to send a picture of the closet after putting gear away.\n{farewell}",
-    "band greeting": "{greeting} {mention}\nI'm {name}, and I'll give you the lockbox code before each of your rehearsals! You can check your gear requests on [this Google Calendar]({url}).\nHappy rehearsing!"
+    "band greeting": "{greeting} {mention}\nI'm {name}, and I'll give you the lockbox code before each of your rehearsals! You can check your gear requests on [this Google Calendar]({url}).\nHappy rehearsing!",
+    "automatic refresh": "{greeting}\nThe calendar was automatically refreshed.\n{farewell}"
   },
   "greetings": {
     "general": [
@@ -111,5 +119,14 @@
       "Have a good rehearsal! \ud83c\udfb5 ",
       "Have a great rehearsal! \ud83c\udfb6"
     ]
-  }
+  },
+  "thank you replies": [
+    "You're welcome! :blush:",
+    "You got it dude. :sunglasses:",
+    "Of course! :blush:",
+    "Awww, thank you for thanking me! :blush:",
+    "Bro's thanking a Discord bot :rofl::rofl::rofl:",
+    "I'm always here for ya! :salute:",
+    "Just doin' my job. \ud83e\udee1"
+  ]
 }

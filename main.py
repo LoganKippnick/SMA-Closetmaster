@@ -29,7 +29,7 @@ update_scheduler = BackgroundScheduler()
 
 def remove_bot_mention(content):
     """Removes the bot mention from the message."""
-    return content.removeprefix(client.user.mention).lstrip()
+    return content.replace(client.user.mention, '').lstrip()
 
 
 @client.event
@@ -50,75 +50,88 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-    # Ignore message if it is written by the bot or does not mention the bot
-    if message.author == client.user or not message.content.startswith(client.user.mention):
+    # Ignore message if it is written by the bot or does not contain a bot mention
+    if message.author == client.user or message.content.find(client.user.mention) == -1:
         return
 
     content = remove_bot_mention(message.content)
 
+    files = []
     reply = ''
     error = ''
 
     content_lower = content.lower()
 
-    user_role_ids = [role.id for role in message.author.roles]
-    if settings_manager.get_admin_role_id() not in user_role_ids and not content_lower.startswith('roll'):
-        return # Not admin of bot: cannot execute commands: no response
-
-    if content_lower.startswith('get code expiration'):
-        reply = commands.get_code_expiration()
-    elif content_lower.startswith('get code'):
-        reply = commands.get_code()
-    elif content_lower.startswith('update code'):
-        reply = commands.update_code()
-        schedule_change_reminder_msg()
-    elif content_lower.startswith('set code expiration'):
-        reply = commands.set_code_expiration(content)
-        schedule_change_reminder_msg()
-    elif content_lower.startswith('set code'):
-        reply = commands.set_code(content)
-        schedule_change_reminder_msg()
-    elif content_lower.startswith('add band'):
-        [reply, send_greeting] = commands.add_band(content)
-        if send_greeting:
-            error = await band_greeting_msg(band_manager.get_band(band_manager.get_bands()[-1]['name']))
-    elif content_lower.startswith('list bands'):
-        reply = commands.list_bands()
-    elif content_lower.startswith('remove band'):
-        reply = commands.remove_band(content)
-    elif content_lower.startswith('change band name'):
-        reply = commands.change_band_name(content)
-    elif content_lower.startswith('next rehearsal'):
-        reply = commands.next_rehearsal()
-    elif content_lower.startswith('next request'):
-        reply = commands.next_request()
-    elif content_lower.startswith('set setting'):
-        reply = commands.set_setting(content)
-    elif content_lower.startswith('list settings'):
-        reply = commands.list_settings()
-    elif content_lower.startswith('refresh calendar'):
-        refresh_calendar(False)
-        reply = commands.refresh_calendar()
-    elif content_lower.startswith('add greeting'):
-        reply = commands.add_greeting(content)
-    elif content_lower.startswith('remove greeting'):
-        reply = commands.remove_greeting(content)
-    elif content_lower.startswith('list greetings'):
-        reply = commands.list_greetings()
-    elif content_lower.startswith('add farewell'):
-        reply = commands.add_farewell(content)
-    elif content_lower.startswith('remove farewell'):
-        reply = commands.remove_farewell(content)
-    elif content_lower.startswith('list farewells'):
-        reply = commands.list_farewells()
-    elif content_lower.startswith('list commands') or content_lower.startswith('help'):
-        reply = commands.list_commands()
-    elif content_lower.startswith('roll'):
+    # Allow anyone to use the roll command or thank the bot
+    if content_lower.startswith('roll'):
         reply = commands.roll(content)
-    elif content_lower.startswith('quit'):
-        exit(0)
+    elif 'thank' in content_lower and not content_lower.startswith(('list', 'add', 'remove')):
+        reply = content_manager.get_thank_you_reply()
     else:
-        reply = commands.bad_command()
+        user_role_ids = [role.id for role in message.author.roles]
+        if settings_manager.get_admin_role_id() not in user_role_ids and not content_lower.startswith('roll'):
+            return # Not admin of bot: cannot execute commands: no response
+
+        if content_lower.startswith('get code expiration'):
+            reply = commands.get_code_expiration()
+        elif content_lower.startswith('get code'):
+            reply = commands.get_code()
+        elif content_lower.startswith('update code'):
+            reply = commands.update_code()
+            schedule_change_reminder_msg()
+        elif content_lower.startswith('set code expiration'):
+            reply = commands.set_code_expiration(content)
+            schedule_change_reminder_msg()
+        elif content_lower.startswith('set code'):
+            reply = commands.set_code(content)
+            schedule_change_reminder_msg()
+        elif content_lower.startswith('add band'):
+            [reply, send_greeting] = commands.add_band(content)
+            if send_greeting:
+                error = await band_greeting_msg(band_manager.get_band(band_manager.get_bands()[-1]['name']))
+        elif content_lower.startswith('list bands'):
+            reply = commands.list_bands()
+        elif content_lower.startswith('remove band'):
+            reply = commands.remove_band(content)
+        elif content_lower.startswith('change band name'):
+            reply = commands.change_band_name(content)
+        elif content_lower.startswith('next rehearsal'):
+            reply = commands.next_rehearsal()
+        elif content_lower.startswith('next request'):
+            reply = commands.next_request()
+        elif content_lower.startswith('set setting'):
+            reply = commands.set_setting(content)
+        elif content_lower.startswith('list settings'):
+            reply = commands.list_settings()
+        elif content_lower.startswith('refresh calendar'):
+            refresh_calendar(False)
+            reply = commands.refresh_calendar()
+        elif content_lower.startswith('add greeting'):
+            reply = commands.add_greeting(content)
+        elif content_lower.startswith('remove greeting'):
+            reply = commands.remove_greeting(content)
+        elif content_lower.startswith('list greetings'):
+            reply = commands.list_greetings()
+        elif content_lower.startswith('add farewell'):
+            reply = commands.add_farewell(content)
+        elif content_lower.startswith('remove farewell'):
+            reply = commands.remove_farewell(content)
+        elif content_lower.startswith('list farewells'):
+            reply = commands.list_farewells()
+        elif content_lower.startswith('add thank you reply'):
+            reply = commands.add_thank_you_reply(content)
+        elif content_lower.startswith('remove thank you reply'):
+            reply = commands.remove_thank_you_reply(content)
+        elif content_lower.startswith('list thank you replies'):
+            reply = commands.list_thank_you_replies()
+        elif content_lower.startswith('export configs'):
+            reply, files = commands.export_configs()
+        elif content_lower.startswith('list commands') or content_lower.startswith('help'):
+            reply = commands.list_commands()
+        elif content_lower.startswith('quit'):
+            exit(0)
+        else:
+            reply = commands.bad_command()
 
     if len(reply) != 0:
         if isinstance(reply, list):
@@ -127,7 +140,7 @@ async def on_message(message):
         else:
             if len(reply) > 2000:
                 reply = content_manager.split_content(reply)
-            await message.reply(reply)
+            await message.reply(reply, files=[discord.File(path) for path in files])
 
     if len(error) != 0:
         await message.reply(error)
@@ -213,7 +226,7 @@ async def picture_before_reminder_msg(rehearsal_start, bands):
 
     for band in bands:
         # Check if band member sent image since code was given
-        if band_member_sent_image(band, start, end):
+        if await band_member_sent_image(band, start, end): # TODO check if this works
             channel = client.get_channel(band['channel_id'])
             mention = band['role']
             msg = content_manager.format_message(content_manager.get_message('picture before rehearsal reminder'), end, {}, mention, True)
@@ -232,23 +245,31 @@ async def picture_after_reminder_msg(rehearsal_start, rehearsal_end, band):
     start = rehearsal_start + ((rehearsal_end - rehearsal_start) / 2) # Halfway through rehearsal
     end = rehearsal_end + timedelta(minutes=settings_manager.get_setting('teardown_time_mins'))
 
-    if band_member_sent_image(band, start, end):
+    if await band_member_sent_image(band, start, end): # TODO check if this works
         channel = client.get_channel(band['channel_id'])
         mention = band['role']
         msg = content_manager.format_message(content_manager.get_message('picture after rehearsal reminder'), end, {}, mention, False)
         await channel.send(msg)
 
 
-def refresh_calendar(schedule_next=True):
+def refresh_calendar(is_automatic=True):
     """Reschedules the lockbox code messages for bands' rehearsals in case new events have been added in the meantime."""
     # Cancel previously scheduled rehearsal messages
     band_msg_scheduler.remove_all_jobs()
     # Reschedules rehearsal message
     schedule_rehearsal_msgs()
     schedule_request_msg()
+    schedule_change_reminder_msg()
 
-    if schedule_next:
+    if is_automatic:
         schedule_refresh_calendar()
+
+        if settings_manager.get_setting('notify_auto_refresh') != 0: # TODO test this feature
+            # Send automatic refresh notification to quartermaster channel
+            channel = client.get_channel(settings_manager.get_quartermaster_channel_id())
+            mention = settings_manager.get_setting('quartermaster_role')
+            msg = content_manager.format_message(content_manager.get_message('automatic refresh'), datetime.now(), {}, mention, False)
+            channel.send(msg)
 
 
 def schedule_rehearsal_msgs(after=None):
@@ -300,9 +321,6 @@ def schedule_request_msg(after=None):
     send_dt = start - timedelta(minutes=settings_manager.get_setting('setup_time_mins') + settings_manager.get_setting('quartermaster_reminder_time_mins'))
     band_msg_scheduler.add_job(request_code_msg, 'date', run_date=send_dt,
                                args=[requests, send_dt.time()], id='picture before msg', replace_existing=True)
-
-    print(send_dt)
-    print(requests)
 
 
 def schedule_change_reminder_msg():

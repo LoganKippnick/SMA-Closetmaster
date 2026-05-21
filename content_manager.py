@@ -17,6 +17,10 @@ def write_json():
     json.dump(content_data, open(json_filename, 'w'), indent=2)
 
 
+def get_greetings():
+    return copy.deepcopy(content_data['greetings'])
+
+
 def get_greeting(msg_time=None):
     greetings = get_greetings()['general']
     if msg_time is not None:
@@ -32,8 +36,8 @@ def get_greeting(msg_time=None):
     return greetings[random.randint(0, len(greetings) - 1)]
 
 
-def get_greetings():
-    return copy.deepcopy(content_data['greetings'])
+def get_farewells():
+    return copy.deepcopy(content_data['farewells'])
 
 
 def get_farewell(msg_time=None, is_rehearsal=False):
@@ -50,8 +54,13 @@ def get_farewell(msg_time=None, is_rehearsal=False):
     return farewells[random.randint(0, len(farewells) - 1)]
 
 
-def get_farewells():
-    return copy.deepcopy(content_data['farewells'])
+def get_thank_you_replies():
+    return copy.deepcopy(content_data['thank you replies'])
+
+
+def get_thank_you_reply():
+    thank_you_replies = get_thank_you_replies()
+    return thank_you_replies[random.randint(0, len(thank_you_replies) - 1)]
 
 
 def get_command(cmd_name):
@@ -93,11 +102,20 @@ def add_farewell(farewell, category=None):
     write_json()
 
 
+def add_thank_you_reply(reply):
+    for existing_reply in content_data['thank you replies']:
+        if existing_reply == reply:
+            raise ValueError(f'Duplicate thank you reply "{existing_reply}".')
+    content_data['thank you replies'].append(reply)
+
+    write_json()
+
+
 def remove_greeting(greeting):
     greeting_removed = False
-    for section in content_data['greetings'].keys():
-        while greeting in content_data['greetings'][section]:
-            content_data['greetings'][section].remove(greeting)
+    for category in content_data['greetings'].keys():
+        while greeting in content_data['greetings'][category]:
+            content_data['greetings'][category].remove(greeting)
             write_json()
             greeting_removed = True
     if not greeting_removed:
@@ -106,13 +124,21 @@ def remove_greeting(greeting):
 
 def remove_farewell(farewell):
     farewell_removed = False
-    for section in content_data['farewells'].keys():
-        if farewell in content_data['farewells'][section]:
-            content_data['farewells'][section].remove(farewell)
+    for category in content_data['farewells'].keys():
+        if farewell in content_data['farewells'][category]:
+            content_data['farewells'][category].remove(farewell)
             write_json()
             farewell_removed = True
     if not farewell_removed:
         raise ValueError(f'Farewell "{farewell}" not found.')
+
+
+def remove_thank_you_reply(reply):
+    if reply in content_data['thank you replies']:
+        content_data['thank you replies'].remove(reply)
+        write_json()
+    else:
+        raise ValueError(f'Thank you reply "{reply}" not found.')
 
 
 def format_command(cmd, data):
@@ -138,7 +164,6 @@ def split_content(content):
                 split_len = ws_list[-1].span()[0]
             if split_len <= 0:
                 split_len = 2000
-        print(split_len, content[:split_len].strip())
         contents.append(content[:split_len].strip())
         content = content[split_len:].strip()
 

@@ -31,9 +31,9 @@
       "channel": "<#1223357208293802045>"
     },
     {
-      "name": "Dogwater",
-      "role": "<@&1386850398505144381>",
-      "channel": "<#1386849518217072681>"
+      "name": "The Downtown Porcupines",
+      "role": "<@&1474278154280636436>",
+      "channel": "<#1474277823823876147>"
     },
     {
       "name": "Edsworth",
@@ -46,14 +46,19 @@
       "channel": "<#1298032485564678167>"
     },
     {
-      "name": "Killer Crab",
+      "name": "Monkeys and Typewriters",
+      "role": "<@&1358553992166379540>",
+      "channel": "<#1358554562830663923>"
+    },
+    {
+      "name": "Nkala",
       "role": "<@&1408197892648206479>",
       "channel": "<#1408197807856418966>"
     },
     {
-      "name": "Monkeys and Typewriters",
-      "role": "<@&1358553992166379540>",
-      "channel": "<#1358554562830663923>"
+      "name": "No Record",
+      "role": "<@&1483836922135576768>",
+      "channel": "<#1483836814522581143>"
     },
     {
       "name": "Optimal",
@@ -64,6 +69,11 @@
       "name": "PanteritA",
       "role": "<@&1439786505085390999>",
       "channel": "<#1439786952881868810>"
+    },
+    {
+      "name": "Pereplica",
+      "role": "<@&479792413884547072>",
+      "channel": "<#1483219781858623540>"
     },
     {
       "name": "Quiet Hour",
@@ -86,9 +96,14 @@
       "channel": "<#1307135563677040731>"
     },
     {
-      "name": "Wailing Sirens of Los Alamos",
-      "role": "<@&1436445042637012992>",
-      "channel": "<#1436445345646379018>"
+      "name": "Tire Fire",
+      "role": "<@&1483218750735126629>",
+      "channel": "<#1483219315724386454>"
+    },
+    {
+      "name": "The Unnamed Band",
+      "role": "<@&1487876248603459655>",
+      "channel": "<#1487876696798396487>"
     },
     {
       "name": "YURI ON SEMBLE",

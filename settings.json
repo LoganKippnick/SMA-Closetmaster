@@ -19,6 +19,11 @@
     "type": "uint",
     "description": "Number of minutes between refreshes of gear request calendar"
   },
+  "notify_auto_refresh": {
+    "value": 1,
+    "type": "uint",
+    "description": "Whether sending a message on calendar automatic refresh is enabled. One of `0`: disabled, `1`: enabled"
+  },
   "admin_role": {
     "value": "<@&484152700724838401>",
     "type": "@role",
@@ -70,7 +75,7 @@
     "description": "Number of minutes before a band's rehearsal to send the lockbox code"
   },
   "picture_before_reminder_mode": {
-    "value": 0,
+    "value": 2,
     "type": "uint",
     "description": "Manner to send reminders to send picture of closet before rehearsal. One of `0`: Never, `1`: Only if start of rehearsal is not overlapping or adjacent, `2`: Always"
   },
@@ -80,12 +85,12 @@
     "description": "Number of minutes into a band's rehearsal to send reminder to send picture of closet (if setting enabled and image not already sent)"
   },
   "picture_after_reminder_mode": {
-    "value": 1,
+    "value": 2,
     "type": "uint",
-    "description": "Manner to send reminders to send picture of closet after rehearsal. One of, `0`: Never, `1`: Only if end of rehearsal is not overlapping or adjacent, `2`: Always"
+    "description": "Manner to send reminders to send picture of closet after rehearsal. One of `0`: Never, `1`: Only if end of rehearsal is not overlapping or adjacent, `2`: Always"
   },
   "teardown_time_mins": {
-    "value": 15,
+    "value": 5,
     "type": "uint",
     "description": "Number of minutes after a band's rehearsal to send reminder to send picture of closet (if setting enabled and image not already sent)"
   }
