@@ -344,7 +344,7 @@ def schedule_change_re_reminder_msg():
 def schedule_refresh_calendar(update_dt=None):
     """Schedules the update of scheduled messages."""
     if update_dt is None:
-        update_dt = datetime.now(tz=datetime.timezone.utc) + timedelta(minutes=settings_manager.get_setting('calendar_refresh_mins'))
+        update_dt = datetime.now(tz=timezone.utc) + timedelta(minutes=settings_manager.get_setting('calendar_refresh_mins'))
         # Truncate time to minutes to prevent drift
         update_dt = update_dt.replace(second=0, microsecond=0)
 
