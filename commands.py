@@ -17,6 +17,7 @@ def parse_args(cmd_name, content, expected_num_args=None, max_num_args=None, min
         raise ValueError('Syntax error')
     else:
         content = content.replace('`', '')
+    content = content.replace('“', '"').replace('”', '"').replace('’', '\'')
     args = []
     quotes_open = False
     brackets_open = False
