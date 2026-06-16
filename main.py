@@ -252,7 +252,7 @@ async def picture_after_reminder_msg(rehearsal_start, rehearsal_end, band):
         await channel.send(msg)
 
 
-def refresh_calendar(is_automatic=True):
+async def refresh_calendar(is_automatic=True):
     """Reschedules the lockbox code messages for bands' rehearsals in case new events have been added in the meantime."""
     # Cancel previously scheduled rehearsal messages
     band_msg_scheduler.remove_all_jobs()
@@ -269,8 +269,9 @@ def refresh_calendar(is_automatic=True):
             channel = client.get_channel(settings_manager.get_quartermaster_channel_id())
             mention = settings_manager.get_setting('quartermaster_role')
             msg = content_manager.format_message(content_manager.get_message('automatic refresh'), datetime.now(), {}, mention, False)
-            channel.send(msg)
+            await channel.send(msg)
 
+    print(f'Calendar refresh took place at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}')
 
 def schedule_rehearsal_msgs(after=None):
     """Schedules message to share the lockbox code with bands before their rehearsal."""
