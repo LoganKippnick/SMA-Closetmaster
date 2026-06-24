@@ -38,6 +38,6 @@ of the SMA from B-term of 2024 to C-term of 2027.
 The development, maintenance, and use of this project was and is supported by the current officer board of the WPI Student Music Association to support its ongoing
 mission to build a vibrant and welcoming campus community around music.
 
-# Enabling Clause
+## Enabling Clause
 This project abides by, and shall continue to abide by, the policies of Worcester Polytechnic Institute as well as all federal, state, and local laws. Any changes to this
 project and/or its usage will follow, in word and spirit, all WPI policies and all federal, state, and local laws.
