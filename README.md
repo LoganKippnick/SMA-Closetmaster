@@ -27,6 +27,8 @@ The bot is interacted with through commands that only execute if called by a a m
 Music Association public gear request Google Calendar](https://calendar.google.com/calendar/embed?src=b62f0ce688af06db86253c47daf6f972af67b0969e5965f776b1e4d077772b28%40group.calendar.google.com&ctz=America%2FNew_York)
 to schedule messages to bands and the Quartermaster dependent on gear request information.
 
+This project is currently deployed as a Docker container running on a free Oracle cloud VM.
+
 The Discord server and the Google Calendar are accessed via standard API calls. API tokens referenced by the program are stored in files that are not a part of
 this repository.
 
