@@ -57,8 +57,8 @@ async def on_message(message):
     content = remove_bot_mention(message.content)
 
     files = []
-    reply = ''
-    error = ''
+    reply = None
+    error = None
 
     content_lower = content.lower()
 
@@ -133,7 +133,7 @@ async def on_message(message):
         else:
             reply = commands.bad_command()
 
-    if len(reply) != 0:
+    if reply is not None:
         if isinstance(reply, list):
             for r in reply:
                 await message.reply(r)
@@ -142,7 +142,7 @@ async def on_message(message):
                 reply = content_manager.split_content(reply)
             await message.reply(reply, files=[discord.File(path) for path in files])
 
-    if len(error) != 0:
+    if error is not None:
         await message.reply(error)
 
 
