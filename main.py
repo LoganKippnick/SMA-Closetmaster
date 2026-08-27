@@ -21,6 +21,7 @@ intents.members = True
 client = discord.Client(intents=intents)
 
 token = json.loads(open("bot_token.json").read())['token']
+author_user_id = json.loads(open('discord_author_creds.json').read())['author user id']
 
 band_msg_scheduler = AsyncIOScheduler()
 qm_msg_scheduler = AsyncIOScheduler()
@@ -68,9 +69,10 @@ async def on_message(message):
     elif 'thank' in content_lower and not content_lower.startswith(('list', 'add', 'remove')):
         reply = content_manager.get_thank_you_reply()
     else:
+        # Only run other commands by bot admins or author, otherwise no action
         user_role_ids = [role.id for role in message.author.roles]
-        if settings_manager.get_admin_role_id() not in user_role_ids and not content_lower.startswith('roll'):
-            return # Not admin of bot: cannot execute commands: no response
+        if settings_manager.get_admin_role_id() not in user_role_ids or message.author.id != author_user_id:
+            return
 
         if content_lower.startswith('get code expiration'):
             reply = commands.get_code_expiration()
