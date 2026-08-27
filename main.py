@@ -105,7 +105,7 @@ async def on_message(message):
         elif content_lower.startswith('list settings'):
             reply = commands.list_settings()
         elif content_lower.startswith('refresh calendar'):
-            refresh_calendar(False)
+            await refresh_calendar(False)
             reply = commands.refresh_calendar()
         elif content_lower.startswith('add greeting'):
             reply = commands.add_greeting(content)
