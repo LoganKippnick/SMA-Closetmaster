@@ -5,7 +5,6 @@ from datetime import datetime, timedelta, timezone
 import discord
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.schedulers.background import BackgroundScheduler
-from discord import HTTPException
 
 import band_manager
 import code_manager
