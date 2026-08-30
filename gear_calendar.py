@@ -27,17 +27,15 @@ def request_is_rehearsal(request):
 
 
 def format_rehearsal_event(request):
-    name = request['summary']
-    event = name.split(' ')[-1].lower()
-    band = ' '.join(name.split(' ')[:-1])
-
     if 'dateTime' not in request['start'] or not request_is_rehearsal(request):
         return None
 
+    name = request['summary']
+    band = ' '.join(name.split(' ')[:-1])
     start = datetime.fromisoformat(request['start']['dateTime']).astimezone(tz)
     end = datetime.fromisoformat(request['end']['dateTime']).astimezone(tz)
 
-    return {'name': name, 'band': band, 'event': event, 'start': start, 'end': end}
+    return {'name': name, 'band': band, 'start': start, 'end': end}
 
 
 def format_request_event(request):
@@ -167,6 +165,19 @@ def get_curr_rehearsal(date=None):
         rehearsal = format_rehearsal_event(request)
         if rehearsal is not None:
             requests.append(rehearsal)
+
+    return requests
+
+
+def get_curr_request(date=None):
+    requests = []
+
+    curr_events = get_curr_events(date)
+
+    for event in curr_events:
+        request = format_request_event(event)
+        if request is not None:
+            requests.append(request)
 
     return requests
 
