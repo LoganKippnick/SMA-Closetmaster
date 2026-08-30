@@ -4,7 +4,6 @@ from datetime import datetime, timedelta, timezone
 
 import discord
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.schedulers.background import BackgroundScheduler
 
 import band_manager
 import code_manager
@@ -24,7 +23,7 @@ author_user_id = int(json.loads(open('discord_author_creds.json').read())['autho
 
 band_msg_scheduler = AsyncIOScheduler()
 qm_msg_scheduler = AsyncIOScheduler()
-update_scheduler = BackgroundScheduler()
+update_scheduler = AsyncIOScheduler()
 
 
 def remove_bot_mention(content):
@@ -295,13 +294,13 @@ def schedule_rehearsal_msgs(after=None):
     send_code_dt = rehearsal_start - timedelta(minutes=settings_manager.get_setting('setup_time_mins'))
     remind_picture_before_dt = rehearsal_start + timedelta(minutes=settings_manager.get_setting('picture_before_reminder_mins'))
 
-    band_msg_scheduler.add_job(rehearsal_code_msg, 'date', run_date=send_code_dt, args=[bands, send_code_dt.time()], id='code msg', replace_existing=False)
-    band_msg_scheduler.add_job(picture_before_reminder_msg, 'date', run_date=remind_picture_before_dt, args=[rehearsal_start, bands], id='picture before msg', replace_existing=False)
+    band_msg_scheduler.add_job(rehearsal_code_msg, 'date', run_date=send_code_dt, args=[bands, send_code_dt.time()], id=f'code msg {send_code_dt.strftime("%Y-%m-%d %H:%M:%S")}', replace_existing=True)
+    band_msg_scheduler.add_job(picture_before_reminder_msg, 'date', run_date=remind_picture_before_dt, args=[rehearsal_start, bands], id=f'picture before msg {remind_picture_before_dt.strftime("%Y-%m-%d %H:%M:%S")}', replace_existing=True)
 
     for i in range(len(bands)):
         rehearsal_end = next_rehearsals[i]['end']
         remind_picture_after_dt = rehearsal_end + timedelta(minutes=settings_manager.get_setting('teardown_time_mins'))
-        band_msg_scheduler.add_job(picture_after_reminder_msg, 'date', run_date=remind_picture_after_dt, args=[rehearsal_start, rehearsal_end, bands[i]], id='picture after msg', replace_existing=False)
+        band_msg_scheduler.add_job(picture_after_reminder_msg, 'date', run_date=remind_picture_after_dt, args=[rehearsal_start, rehearsal_end, bands[i]], id=f'picture after msg {remind_picture_after_dt.strftime("%Y-%m-%d %H:%M:%S")}', replace_existing=True)
 
 
 def schedule_request_msg(after=None):
@@ -322,14 +321,14 @@ def schedule_request_msg(after=None):
     # Schedule message
     send_dt = start - timedelta(minutes=settings_manager.get_setting('setup_time_mins') + settings_manager.get_setting('quartermaster_reminder_time_mins'))
     band_msg_scheduler.add_job(request_code_msg, 'date', run_date=send_dt,
-                               args=[requests, send_dt.time()], id='picture before msg', replace_existing=True)
+                               args=[requests, send_dt.time()], id=f'request code msg {send_dt.strftime("%Y-%m-%d %H:%M:%S")}', replace_existing=True)
 
 
 def schedule_change_reminder_msg():
     """Schedules message to the Quartermaster to change the lockbox code and what to change it to."""
     send_dt = datetime.combine(code_manager.get_expires(), settings_manager.get_change_code_reminder_time())
     if send_dt > datetime.now(tz=timezone.utc):
-        qm_msg_scheduler.add_job(change_reminder_msg, 'date', run_date=send_dt, args=[send_dt.time()], id='change reminder', replace_existing=True)
+        qm_msg_scheduler.add_job(change_reminder_msg, 'date', run_date=send_dt, args=[send_dt.time()], id=f'change reminder {send_dt.strftime("%Y-%m-%d %H:%M:%S")}', replace_existing=True)
     schedule_change_re_reminder_msg()
 
 
@@ -340,7 +339,7 @@ def schedule_change_re_reminder_msg():
         return # Re-reminder disabled
     send_dt = datetime.combine(code_manager.get_expires(), settings_manager.get_change_code_reminder_time()) + timedelta(hours=delay_hours)
     if send_dt > datetime.now(tz=timezone.utc):
-        qm_msg_scheduler.add_job(change_re_reminder_msg, 'date', run_date=send_dt, args=[send_dt.time()], id='change re-reminder', replace_existing=True)
+        qm_msg_scheduler.add_job(change_re_reminder_msg, 'date', run_date=send_dt, args=[send_dt.time()], id=f'change re-reminder {send_dt.strftime("%Y-%m-%d %H:%M:%S")}', replace_existing=True)
 
 
 def schedule_refresh_calendar(update_dt=None):
@@ -350,7 +349,7 @@ def schedule_refresh_calendar(update_dt=None):
         # Truncate time to minutes to prevent drift
         update_dt = update_dt.replace(second=0, microsecond=0)
 
-    update_scheduler.add_job(refresh_calendar, 'date', run_date=update_dt, args=[], id='calendar update')
+    update_scheduler.add_job(refresh_calendar, 'date', run_date=update_dt, args=[], id=f'calendar update {update_dt.strftime("%Y-%m-%d %H:%M:%S")}')
 
 
 async def band_greeting_msg(band):
