@@ -162,12 +162,22 @@ def add_band(message):
 def list_bands():
     cmd_name = 'list bands'
     bands = band_manager.get_bands()
+
     if len(bands) == 0:
         return content_manager.get_command(cmd_name)['no bands']
+    
+    def sort_key(band):
+        name = band['name'].lower()
+        for article in ['the ', 'a ', 'an ']:
+            if name.startswith(article):
+                return name[len(article):]
+        return name
+    
     bands_data = []
-    for band in bands:
+    for band in sorted(bands, key=sort_key):
         bands_data.append(content_manager.format_command(content_manager.get_command(cmd_name)['for band'], {'name': band['name']}))
-    return content_manager.get_command(cmd_name)['join bands'].join(sorted(bands_data))
+
+    return content_manager.get_command(cmd_name)['join bands'].join(bands_data)
 
 
 def change_band_name(message):
@@ -199,7 +209,6 @@ def set_setting(message):
         [setting_name, setting_value] = parse_args(cmd_name, message, expected_num_args=2)
         settings_manager.set_setting(setting_name, setting_value)
         formatted_value = settings_manager.format_value(settings_manager.get_settings()[setting_name])
-
         return content_manager.format_command(content_manager.get_command(cmd_name), {'name': setting_name, 'formatted value': formatted_value})
     except ValueError as e:
         return throw_error(cmd_name, e)
