@@ -34,9 +34,12 @@ def remove_bot_mention(content):
 @client.event
 async def on_ready():
     # Start schedulers
-    band_msg_scheduler.start()
-    qm_msg_scheduler.start()
-    update_scheduler.start()
+    if not band_msg_scheduler.running:
+        band_msg_scheduler.start()
+    if not qm_msg_scheduler.running:
+        qm_msg_scheduler.start()
+    if not update_scheduler.running:
+        update_scheduler.start()
 
     # Schedule future messages
     schedule_rehearsal_msgs()
