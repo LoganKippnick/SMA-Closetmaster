@@ -47,7 +47,7 @@ async def on_ready():
     schedule_change_reminder_msg()
 
     # Schedule calendar updates to start at midnight
-    schedule_refresh_calendar(datetime.today() + timedelta(days=1))
+    schedule_refresh_calendar(datetime.today().replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=settings_manager.get_timezone()) + timedelta(days=1))
 
 
 @client.event
@@ -92,10 +92,12 @@ async def on_message(message):
             [reply, send_greeting] = commands.add_band(content)
             if send_greeting:
                 error = await band_greeting_msg(band_manager.get_band(band_manager.get_bands()[-1]['name']))
+            await refresh_calendar()
         elif content_lower.startswith('list bands'):
             reply = commands.list_bands()
         elif content_lower.startswith('remove band'):
             reply = commands.remove_band(content)
+            await refresh_calendar()
         elif content_lower.startswith('change band name'):
             reply = commands.change_band_name(content)
         elif content_lower.startswith('next rehearsal'):
@@ -107,7 +109,7 @@ async def on_message(message):
         elif content_lower.startswith('list settings'):
             reply = commands.list_settings()
         elif content_lower.startswith('refresh calendar'):
-            await refresh_calendar(False)
+            await refresh_calendar()
             reply = commands.refresh_calendar()
         elif content_lower.startswith('add greeting'):
             reply = commands.add_greeting(content)
@@ -255,7 +257,7 @@ async def picture_after_reminder_msg(rehearsal_start, rehearsal_end, band):
         await channel.send(msg)
 
 
-async def refresh_calendar(is_automatic=True):
+async def refresh_calendar(is_automatic=False):
     """Reschedules the lockbox code messages for bands' rehearsals in case new events have been added in the meantime."""
     # Cancel previously scheduled rehearsal messages
     band_msg_scheduler.remove_all_jobs()
@@ -277,33 +279,56 @@ async def refresh_calendar(is_automatic=True):
     print(f'Calendar refresh took place at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}')
 
 def schedule_rehearsal_msgs(after=None):
-    """Schedules message to share the lockbox code with bands before their rehearsal."""
+    """Schedules message to share the lockbox code with bands before their rehearsal, for the next upcoming rehearsal."""
 
     # Ensure that scheduled message will be sent in the future
     if after is None:
         after = datetime.now() + timedelta(minutes=settings_manager.get_setting('setup_time_mins'))
     next_rehearsals = gear_calendar.get_next_rehearsal(after=after)
 
-    if len(next_rehearsals) == 0:
+    # Also get current rehearsals in case a refresh happens mid-rehearsal
+    current_rehearsals = gear_calendar.get_curr_rehearsal()
+
+    if len(next_rehearsals) == 0 and len(current_rehearsals) == 0:
         return # No upcoming rehearsals for now
 
-    # Array of bands to account for edge case where two bands start rehearsal at the same time
-    bands = []
-    for rehearsal in next_rehearsals:
-        bands.append(band_manager.get_band(rehearsal['band']))
+    # Handle next rehearsals
+    if len(next_rehearsals) > 0:
+        # Array of bands to account for edge case where two bands start rehearsal at the same time
+        bands = []
+        for rehearsal in next_rehearsals:
+            bands.append(band_manager.get_band(rehearsal['band']))
 
-    # Schedule message(s)
-    rehearsal_start = next_rehearsals[0]['start']
-    send_code_dt = rehearsal_start - timedelta(minutes=settings_manager.get_setting('setup_time_mins'))
-    remind_picture_before_dt = rehearsal_start + timedelta(minutes=settings_manager.get_setting('picture_before_reminder_mins'))
+        # Schedule message(s)
+        rehearsal_start = next_rehearsals[0]['start']
+        send_code_dt = rehearsal_start - timedelta(minutes=settings_manager.get_setting('setup_time_mins'))
+        remind_picture_before_dt = rehearsal_start + timedelta(minutes=settings_manager.get_setting('picture_before_reminder_mins'))
 
-    band_msg_scheduler.add_job(rehearsal_code_msg, 'date', run_date=send_code_dt, args=[bands, send_code_dt.time()], id=f'code msg {send_code_dt.strftime("%Y-%m-%d %H:%M:%S")}', replace_existing=True)
-    band_msg_scheduler.add_job(picture_before_reminder_msg, 'date', run_date=remind_picture_before_dt, args=[rehearsal_start, bands], id=f'picture before msg {remind_picture_before_dt.strftime("%Y-%m-%d %H:%M:%S")}', replace_existing=True)
+        band_msg_scheduler.add_job(rehearsal_code_msg, 'date', run_date=send_code_dt, args=[bands, send_code_dt.time()], id=f'code msg {send_code_dt.strftime("%Y-%m-%d %H:%M:%S")}', replace_existing=True)
+        band_msg_scheduler.add_job(picture_before_reminder_msg, 'date', run_date=remind_picture_before_dt, args=[rehearsal_start, bands], id=f'picture before msg {remind_picture_before_dt.strftime("%Y-%m-%d %H:%M:%S")}', replace_existing=True)
 
-    for i in range(len(bands)):
-        rehearsal_end = next_rehearsals[i]['end']
-        remind_picture_after_dt = rehearsal_end + timedelta(minutes=settings_manager.get_setting('teardown_time_mins'))
-        band_msg_scheduler.add_job(picture_after_reminder_msg, 'date', run_date=remind_picture_after_dt, args=[rehearsal_start, rehearsal_end, bands[i]], id=f'picture after msg {remind_picture_after_dt.strftime("%Y-%m-%d %H:%M:%S")}', replace_existing=True)
+        for i in range(len(bands)):
+            rehearsal_end = next_rehearsals[i]['end']
+            remind_picture_after_dt = rehearsal_end + timedelta(minutes=settings_manager.get_setting('teardown_time_mins'))
+            band_msg_scheduler.add_job(picture_after_reminder_msg, 'date', run_date=remind_picture_after_dt, args=[rehearsal_start, rehearsal_end, bands[i]], id=f'picture after msg {remind_picture_after_dt.strftime("%Y-%m-%d %H:%M:%S")}', replace_existing=True)
+
+    # Handle current rehearsals - schedule any messages that haven't been sent yet
+    if len(current_rehearsals) > 0:
+        now = datetime.now(tz=settings_manager.get_timezone())
+        for rehearsal in current_rehearsals:
+            band = band_manager.get_band(rehearsal['band'])
+            rehearsal_start = rehearsal['start']
+            rehearsal_end = rehearsal['end']
+
+            # Check and schedule picture before message if it hasn't been sent yet
+            remind_picture_before_dt = rehearsal_start + timedelta(minutes=settings_manager.get_setting('picture_before_reminder_mins'))
+            if remind_picture_before_dt >= now:
+                band_msg_scheduler.add_job(picture_before_reminder_msg, 'date', run_date=remind_picture_before_dt, args=[rehearsal_start, [band]], id=f'picture before msg {remind_picture_before_dt.strftime("%Y-%m-%d %H:%M:%S")}', replace_existing=True)
+
+            # Check and schedule picture after message if it hasn't been sent yet
+            remind_picture_after_dt = rehearsal_end + timedelta(minutes=settings_manager.get_setting('teardown_time_mins'))
+            if remind_picture_after_dt >= now:
+                band_msg_scheduler.add_job(picture_after_reminder_msg, 'date', run_date=remind_picture_after_dt, args=[rehearsal_start, rehearsal_end, band], id=f'picture after msg {remind_picture_after_dt.strftime("%Y-%m-%d %H:%M:%S")}', replace_existing=True)
 
 
 def schedule_request_msg(after=None):
@@ -314,17 +339,15 @@ def schedule_request_msg(after=None):
         after = datetime.now() + timedelta(minutes=settings_manager.get_setting('setup_time_mins') + settings_manager.get_setting('quartermaster_reminder_time_mins'))
     requests = gear_calendar.get_next_request(after)
 
-    if len(requests) == 0:
-        return  # No upcoming rehearsals for now
+    if len(requests) > 0:
+        start = requests[0]['start']
+        end = start + timedelta(minutes=settings_manager.get_setting('quartermaster_request_range_mins'))
+        requests = gear_calendar.get_requests_in_range(start, end, True, True)
 
-    start = requests[0]['start']
-    end = start + timedelta(minutes=settings_manager.get_setting('quartermaster_request_range_mins'))
-    requests = gear_calendar.get_requests_in_range(start, end, True, True)
-
-    # Schedule message
-    send_dt = start - timedelta(minutes=settings_manager.get_setting('setup_time_mins') + settings_manager.get_setting('quartermaster_reminder_time_mins'))
-    band_msg_scheduler.add_job(request_code_msg, 'date', run_date=send_dt,
-                               args=[requests, send_dt.time()], id=f'request code msg {send_dt.strftime("%Y-%m-%d %H:%M:%S")}', replace_existing=True)
+        # Schedule message
+        send_dt = start - timedelta(minutes=settings_manager.get_setting('setup_time_mins') + settings_manager.get_setting('quartermaster_reminder_time_mins'))
+        band_msg_scheduler.add_job(request_code_msg, 'date', run_date=send_dt,
+                                   args=[requests, send_dt.time()], id=f'request code msg {send_dt.strftime("%Y-%m-%d %H:%M:%S")}', replace_existing=True)
 
 
 def schedule_change_reminder_msg():
@@ -352,7 +375,7 @@ def schedule_refresh_calendar(update_dt=None):
         # Truncate time to minutes to prevent drift
         update_dt = update_dt.replace(second=0, microsecond=0)
 
-    update_scheduler.add_job(refresh_calendar, 'date', run_date=update_dt, args=[], id=f'calendar update {update_dt.strftime("%Y-%m-%d %H:%M:%S")}')
+    update_scheduler.add_job(refresh_calendar, 'date', run_date=update_dt, args=[True], id=f'calendar update {update_dt.strftime("%Y-%m-%d %H:%M:%S")}')
 
 
 async def band_greeting_msg(band):
