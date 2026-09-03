@@ -231,7 +231,7 @@ async def picture_before_reminder_msg(rehearsal_start, bands):
 
     for band in bands:
         # Check if band member sent image since code was given
-        if await band_member_sent_image(band, start, end): # TODO check if this works
+        if not await band_member_sent_image(band, start, end):
             channel = client.get_channel(band['channel_id'])
             mention = band['role']
             msg = content_manager.format_message(content_manager.get_message('picture before rehearsal reminder'), end, {}, mention, True)
@@ -250,7 +250,7 @@ async def picture_after_reminder_msg(rehearsal_start, rehearsal_end, band):
     start = rehearsal_start + ((rehearsal_end - rehearsal_start) / 2) # Halfway through rehearsal
     end = rehearsal_end + timedelta(minutes=settings_manager.get_setting('teardown_time_mins'))
 
-    if await band_member_sent_image(band, start, end): # TODO check if this works
+    if not await band_member_sent_image(band, start, end):
         channel = client.get_channel(band['channel_id'])
         mention = band['role']
         msg = content_manager.format_message(content_manager.get_message('picture after rehearsal reminder'), end, {}, mention, False)
