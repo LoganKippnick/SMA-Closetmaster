@@ -23,7 +23,7 @@
     "params": "<name> <@role> <#channel> <optional: send greeting>",
     "description": "Adds a band with the given name, role, and channel. Sends a greeting message to the band if parameter is not given or is \"true\"."
   },
-  "change band name": {
+  "rename band": {
     "params": "<current name> <new name>",
     "description": "Updates the name of the band with the given name to the new name."
   },

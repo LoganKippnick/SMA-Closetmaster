@@ -12,7 +12,8 @@ commands_data = json.load(open('commands.json', 'r'))
 
 
 def parse_args(cmd_name, content, expected_num_args=None, max_num_args=None, min_num_args=None):
-    content = content.removeprefix(cmd_name).strip()
+    if content.casefold().startswith(cmd_name.casefold()):
+        content = content[len(cmd_name):].strip()
     if content.count('`') % 2 == 1:
         raise ValueError('Syntax error')
     else:
@@ -180,12 +181,12 @@ def list_bands():
     return content_manager.get_command(cmd_name)['join bands'].join(bands_data)
 
 
-def change_band_name(message):
-    cmd_name = 'change band name'
+def rename_band(message):
+    cmd_name = 'rename band'
     try:
         [old_name, new_name] = parse_args(cmd_name, message, expected_num_args=2)
         band_manager.change_name(old_name, new_name)
-        return content_manager.format_command(content_manager.get_command('change band name'), {'old name': old_name, 'new name': new_name})
+        return content_manager.format_command(content_manager.get_command('rename band'), {'old name': old_name, 'new name': new_name})
     except ValueError as e:
         return throw_error(cmd_name, e)
 

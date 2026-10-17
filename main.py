@@ -98,8 +98,8 @@ async def on_message(message):
         elif content_lower.startswith('remove band'):
             reply = commands.remove_band(content)
             await refresh_calendar()
-        elif content_lower.startswith('change band name'):
-            reply = commands.change_band_name(content)
+        elif content_lower.startswith('rename band'):
+            reply = commands.rename_band(content)
         elif content_lower.startswith('next rehearsal'):
             reply = commands.next_rehearsal()
         elif content_lower.startswith('next request'):
