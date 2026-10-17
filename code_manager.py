@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 import json
 import random
@@ -34,38 +34,52 @@ def get_expires():
     return date.fromisoformat(json_data['expires'])
 
 
+def _is_expiration_day_allowed(expiration_date, weekend_mode):
+    weekday = expiration_date.weekday()
+    if weekend_mode == 0:
+        return weekday < 5
+    if weekend_mode == 1:
+        return weekday < 6
+    if weekend_mode == 2:
+        return weekday != 5
+    return True
+
+
+def _next_allowed_expiration_date(expiration_date, weekend_mode):
+    while not _is_expiration_day_allowed(expiration_date, weekend_mode):
+        expiration_date += timedelta(days=1)
+    return expiration_date
+
+
+def normalize_expiration_date(expiration_date):
+    weekend_mode = settings_manager.get_setting('weekend_change_code_reminder_mode')
+    return _next_allowed_expiration_date(expiration_date, weekend_mode)
+
+
+def normalize_stored_expiration_date():
+    expires = get_expires()
+    normalized_expires = normalize_expiration_date(expires)
+    if normalized_expires != expires:
+        json_data['expires'] = normalized_expires.isoformat()
+        write_json()
+    return normalized_expires
+
+
 def generate_expires_date():
     weekend_mode = settings_manager.get_setting('weekend_change_code_reminder_mode')
     min_days = settings_manager.get_setting('min_change_code_days')
-
-    if weekend_mode <= 1:
-        days_until_monday = date.today().weekday() % 7
-        if days_until_monday == 0:
-            days_until_monday = 7
-
-        num_days = 6 if weekend_mode == 1 else 5
-
-        if min_days >= num_days:
-            min_days = 0
-
-        expire_delta = timedelta(days=days_until_monday + random.randint(min_days, num_days))
-    else:
-        days_until_sunday = (date.today().weekday() % 7) - 1
-        if days_until_sunday <= 0:
-            days_until_sunday += 7
-
-        num_days = 6 if weekend_mode == 2 else 7
-
-        if min_days >= num_days:
-            min_days = 0
-
-        expire_delta = timedelta(days=days_until_sunday + random.randint(min_days, num_days))
-
-    return date.today() + expire_delta
+    today = datetime.now(tz=settings_manager.get_timezone()).date()
+    earliest_date = today + timedelta(days=min_days)
+    candidate_dates = []
+    for days_after_minimum in range(7):
+        candidate = earliest_date + timedelta(days=days_after_minimum)
+        if _is_expiration_day_allowed(candidate, weekend_mode):
+            candidate_dates.append(candidate)
+    return random.choice(candidate_dates)
 
 
 def generate_next_code():
-    """Generates a random next code and sets a weekday next week it should be applied"""
+    """Generates a random next code and an expiration date respecting configured scheduling rules."""
     code = ''
     for i in range(0, 4):
         code += str(random.randint(0, 9))
@@ -103,8 +117,10 @@ def set_expires(expires_str):
     except ParserError:
         raise ValueError('Invalid date.')
 
-    if expires_date < date.today():
+    today = datetime.now(tz=settings_manager.get_timezone()).date()
+    if expires_date < today:
         raise ValueError('Date cannot be in the past.')
 
+    expires_date = normalize_expiration_date(expires_date)
     json_data['expires'] = expires_date.isoformat()
     write_json()
