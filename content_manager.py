@@ -43,7 +43,7 @@ def get_farewells():
 def get_farewell(msg_time=None, is_rehearsal=False):
     farewells = get_farewells()['general']
     if msg_time is not None:
-        if msg_time.hour < 9:
+        if msg_time.hour < 19:
             farewells.extend(get_farewells()['day'])
         elif not is_rehearsal:
             farewells.extend(get_farewells()['night'])
