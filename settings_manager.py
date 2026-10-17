@@ -33,7 +33,10 @@ def set_setting(key, value):
         setting_type = settings[key]['type']
         if setting_type == 'uint':
             if value.isdigit():
-                settings[key]['value'] = int(value)
+                numeric_value = int(value)
+                if key == 'weekend_change_code_reminder_mode' and numeric_value not in range(4):
+                    numeric_value = 3
+                settings[key]['value'] = numeric_value
                 write_json()
                 return
         elif setting_type == 'time':
