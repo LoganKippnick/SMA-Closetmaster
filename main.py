@@ -70,9 +70,9 @@ async def on_message(message):
     elif 'thank' in content_lower and not content_lower.startswith(('list', 'add', 'remove')):
         reply = content_manager.get_thank_you_reply()
     else:
-        # Only run other commands by bot admins or author, otherwise no action
+        # Commands must start with bot mention and must be given by bot admins or author, otherwise no action
         user_role_ids = [role.id for role in message.author.roles]
-        if settings_manager.get_admin_role_id() not in user_role_ids and message.author.id != author_user_id:
+        if (settings_manager.get_admin_role_id() not in user_role_ids and message.author.id != author_user_id) or not message.content.lstrip().startswith(client.user.mention):
             return
 
         if content_lower.startswith('get code expiration'):
@@ -106,6 +106,7 @@ async def on_message(message):
             reply = commands.next_request()
         elif content_lower.startswith('set setting'):
             reply = commands.set_setting(content)
+            schedule_change_reminder_msg()
         elif content_lower.startswith('list settings'):
             reply = commands.list_settings()
         elif content_lower.startswith('refresh calendar'):
@@ -138,14 +139,21 @@ async def on_message(message):
         else:
             reply = commands.bad_command()
 
+    replies = []
+
     if reply is not None:
         if isinstance(reply, list):
             for r in reply:
-                await message.reply(r)
+                replies.extend(content_manager.split_content(r))
         else:
-            if len(reply) > 2000:
-                reply = content_manager.split_content(reply)
-            await message.reply(reply, files=[discord.File(path) for path in files])
+            replies.extend(content_manager.split_content(reply))
+
+        if replies:
+            # Attach files to first reply only
+            await message.reply(replies[0], files=[discord.File(path) for path in files])
+
+            for r in replies[1:]:
+                await message.reply(r)
 
     if error is not None:
         await message.reply(error)
@@ -278,6 +286,7 @@ async def refresh_calendar(is_automatic=False):
 
     print(f'Calendar refresh took place at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}')
 
+
 def schedule_rehearsal_msgs(after=None):
     """Schedules message to share the lockbox code with bands before their rehearsal, for the next upcoming rehearsal."""
 
@@ -288,8 +297,10 @@ def schedule_rehearsal_msgs(after=None):
 
     # Also get current rehearsals in case a refresh happens mid-rehearsal
     current_rehearsals = gear_calendar.get_curr_rehearsal()
+    print(f'[schedule_rehearsal_msgs] after={after!r}, next_rehearsals={len(next_rehearsals)}, current_rehearsals={len(current_rehearsals)}')
 
     if len(next_rehearsals) == 0 and len(current_rehearsals) == 0:
+        print('[schedule_rehearsal_msgs] No rehearsal messages scheduled: no upcoming or current rehearsals.')
         return # No upcoming rehearsals for now
 
     # Handle next rehearsals
@@ -303,14 +314,22 @@ def schedule_rehearsal_msgs(after=None):
         rehearsal_start = next_rehearsals[0]['start']
         send_code_dt = rehearsal_start - timedelta(minutes=settings_manager.get_setting('setup_time_mins'))
         remind_picture_before_dt = rehearsal_start + timedelta(minutes=settings_manager.get_setting('picture_before_reminder_mins'))
+        band_names = ', '.join(band['name'] for band in bands)
 
-        band_msg_scheduler.add_job(rehearsal_code_msg, 'date', run_date=send_code_dt, args=[bands, send_code_dt.time()], id=f'code msg {send_code_dt.strftime("%Y-%m-%d %H:%M:%S")}', replace_existing=True)
-        band_msg_scheduler.add_job(picture_before_reminder_msg, 'date', run_date=remind_picture_before_dt, args=[rehearsal_start, bands], id=f'picture before msg {remind_picture_before_dt.strftime("%Y-%m-%d %H:%M:%S")}', replace_existing=True)
+        code_job_id = f'code msg {band_names} {send_code_dt.strftime("%Y-%m-%d %H:%M:%S")}'
+        print(f'[schedule_rehearsal_msgs] Scheduling {code_job_id}: rehearsal_start={rehearsal_start.isoformat()}, run_date={send_code_dt.isoformat()}, callback_msg_time={send_code_dt.time().isoformat()} (hour={send_code_dt.hour}), bands={[band["name"] for band in bands]}')
+        band_msg_scheduler.add_job(rehearsal_code_msg, 'date', run_date=send_code_dt, args=[bands, send_code_dt.time()], id=code_job_id, replace_existing=True)
+
+        picture_before_job_id = f'picture before msg {band_names} {remind_picture_before_dt.strftime("%Y-%m-%d %H:%M:%S")}'
+        print(f'[schedule_rehearsal_msgs] Scheduling {picture_before_job_id}: run_date={remind_picture_before_dt.isoformat()}, rehearsal_start={rehearsal_start.isoformat()}, bands={[band["name"] for band in bands]}')
+        band_msg_scheduler.add_job(picture_before_reminder_msg, 'date', run_date=remind_picture_before_dt, args=[rehearsal_start, bands], id=picture_before_job_id, replace_existing=True)
 
         for i in range(len(bands)):
             rehearsal_end = next_rehearsals[i]['end']
             remind_picture_after_dt = rehearsal_end + timedelta(minutes=settings_manager.get_setting('teardown_time_mins'))
-            band_msg_scheduler.add_job(picture_after_reminder_msg, 'date', run_date=remind_picture_after_dt, args=[rehearsal_start, rehearsal_end, bands[i]], id=f'picture after msg {remind_picture_after_dt.strftime("%Y-%m-%d %H:%M:%S")}', replace_existing=True)
+            picture_after_job_id = f'picture after msg {bands[i]["name"]} {remind_picture_after_dt.strftime("%Y-%m-%d %H:%M:%S")}'
+            print(f'[schedule_rehearsal_msgs] Scheduling {picture_after_job_id}: run_date={remind_picture_after_dt.isoformat()}, rehearsal_start={rehearsal_start.isoformat()}, rehearsal_end={rehearsal_end.isoformat()}, band={bands[i]["name"]!r}')
+            band_msg_scheduler.add_job(picture_after_reminder_msg, 'date', run_date=remind_picture_after_dt, args=[rehearsal_start, rehearsal_end, bands[i]], id=picture_after_job_id, replace_existing=True)
 
     # Handle current rehearsals - schedule any messages that haven't been sent yet
     if len(current_rehearsals) > 0:
@@ -323,12 +342,20 @@ def schedule_rehearsal_msgs(after=None):
             # Check and schedule picture before message if it hasn't been sent yet
             remind_picture_before_dt = rehearsal_start + timedelta(minutes=settings_manager.get_setting('picture_before_reminder_mins'))
             if remind_picture_before_dt >= now:
-                band_msg_scheduler.add_job(picture_before_reminder_msg, 'date', run_date=remind_picture_before_dt, args=[rehearsal_start, [band]], id=f'picture before msg {remind_picture_before_dt.strftime("%Y-%m-%d %H:%M:%S")}', replace_existing=True)
+                picture_before_job_id = f'picture before msg {band["name"]} {remind_picture_before_dt.strftime("%Y-%m-%d %H:%M:%S")}'
+                print(f'[schedule_rehearsal_msgs] Scheduling {picture_before_job_id}: run_date={remind_picture_before_dt.isoformat()}, now={now.isoformat()}, rehearsal_start={rehearsal_start.isoformat()}, band={band["name"]!r}')
+                band_msg_scheduler.add_job(picture_before_reminder_msg, 'date', run_date=remind_picture_before_dt, args=[rehearsal_start, [band]], id=picture_before_job_id, replace_existing=True)
+            else:
+                print(f'[schedule_rehearsal_msgs] Skipping picture-before reminder for {band["name"]!r}: run_date={remind_picture_before_dt.isoformat()} is before now={now.isoformat()}.')
 
             # Check and schedule picture after message if it hasn't been sent yet
             remind_picture_after_dt = rehearsal_end + timedelta(minutes=settings_manager.get_setting('teardown_time_mins'))
             if remind_picture_after_dt >= now:
-                band_msg_scheduler.add_job(picture_after_reminder_msg, 'date', run_date=remind_picture_after_dt, args=[rehearsal_start, rehearsal_end, band], id=f'picture after msg {remind_picture_after_dt.strftime("%Y-%m-%d %H:%M:%S")}', replace_existing=True)
+                picture_after_job_id = f'picture after msg {band["name"]} {remind_picture_after_dt.strftime("%Y-%m-%d %H:%M:%S")}'
+                print(f'[schedule_rehearsal_msgs] Scheduling {picture_after_job_id}: run_date={remind_picture_after_dt.isoformat()}, now={now.isoformat()}, rehearsal_start={rehearsal_start.isoformat()}, rehearsal_end={rehearsal_end.isoformat()}, band={band["name"]!r}')
+                band_msg_scheduler.add_job(picture_after_reminder_msg, 'date', run_date=remind_picture_after_dt, args=[rehearsal_start, rehearsal_end, band], id=picture_after_job_id, replace_existing=True)
+            else:
+                print(f'[schedule_rehearsal_msgs] Skipping picture-after reminder for {band["name"]!r}: run_date={remind_picture_after_dt.isoformat()} is before now={now.isoformat()}.')
 
 
 def schedule_request_msg(after=None):
@@ -346,15 +373,46 @@ def schedule_request_msg(after=None):
 
         # Schedule message
         send_dt = start - timedelta(minutes=settings_manager.get_setting('setup_time_mins') + settings_manager.get_setting('quartermaster_reminder_time_mins'))
+        request_names = [request['name'] for request in requests]
+        job_id = f'request code msg {send_dt.strftime("%Y-%m-%d %H:%M:%S")}'
+        print(f'[schedule_request_msg] Scheduling {job_id}: after={after!r}, request_start={start.isoformat()}, request_range_end={end.isoformat()}, run_date={send_dt.isoformat()}, callback_msg_time={send_dt.time().isoformat()} (hour={send_dt.hour}), requests={request_names}')
         band_msg_scheduler.add_job(request_code_msg, 'date', run_date=send_dt,
-                                   args=[requests, send_dt.time()], id=f'request code msg {send_dt.strftime("%Y-%m-%d %H:%M:%S")}', replace_existing=True)
+                                   args=[requests, send_dt.time()], id=job_id, replace_existing=True)
+    else:
+        print(f'[schedule_request_msg] No request message scheduled: no request found after={after!r}.')
 
 
 def schedule_change_reminder_msg():
     """Schedules message to the Quartermaster to change the lockbox code and what to change it to."""
-    send_dt = datetime.combine(code_manager.get_expires(), settings_manager.get_change_code_reminder_time())
-    if send_dt > datetime.now(tz=timezone.utc):
-        qm_msg_scheduler.add_job(change_reminder_msg, 'date', run_date=send_dt, args=[send_dt.time()], id=f'change reminder {send_dt.strftime("%Y-%m-%d %H:%M:%S")}', replace_existing=True)
+    existing_jobs = [
+        (job.id, job.next_run_time.isoformat() if getattr(job, 'next_run_time', None) is not None else None)
+        for job in qm_msg_scheduler.get_jobs()
+        if job.id.startswith(('change reminder ', 'change re-reminder '))
+    ]
+    print(f'[schedule_change_reminder_msg] Existing code-reminder jobs before scheduling: {existing_jobs}')
+    for job_id, _ in existing_jobs:
+        qm_msg_scheduler.remove_job(job_id)
+        print(f'[schedule_change_reminder_msg] Removed outdated code-reminder job {job_id!r}.')
+
+    expires = code_manager.get_expires()
+    now_local = datetime.now(tz=settings_manager.get_timezone())
+    if expires >= now_local.date():
+        normalized_expires = code_manager.normalize_stored_expiration_date()
+        if normalized_expires != expires:
+            print(f'[schedule_change_reminder_msg] Adjusting stored expiration date from {expires.isoformat()} to {normalized_expires.isoformat()} to honor the weekend setting.')
+            expires = normalized_expires
+
+    reminder_time = settings_manager.get_change_code_reminder_time()
+    send_dt = datetime.combine(expires, reminder_time)
+    now = datetime.now(tz=timezone.utc)
+    job_id = f'change reminder {send_dt.strftime("%Y-%m-%d %H:%M:%S")}'
+    callback_time = send_dt.time()
+    print(f'[schedule_change_reminder_msg] expires={expires.isoformat()}, configured_time={reminder_time.isoformat()}, timezone={reminder_time.tzinfo}, run_date={send_dt.isoformat()}, callback_msg_time={callback_time.isoformat()} (hour={callback_time.hour}, tzinfo={callback_time.tzinfo!r}), now_utc={now.isoformat()}')
+    if send_dt > now:
+        print(f'[schedule_change_reminder_msg] Scheduling {job_id}.')
+        qm_msg_scheduler.add_job(change_reminder_msg, 'date', run_date=send_dt, args=[send_dt.time()], id=job_id, replace_existing=True)
+    else:
+        print(f'[schedule_change_reminder_msg] Skipping {job_id}: run_date is not later than now_utc.')
     schedule_change_re_reminder_msg()
 
 
@@ -362,10 +420,26 @@ def schedule_change_re_reminder_msg():
     """Schedules message to the Quartermaster to re-remind quartermaster to change lockbox code and what to change it to."""
     delay_hours = settings_manager.get_setting('change_code_re-reminder_hours')
     if delay_hours == 0:
+        print('[schedule_change_re_reminder_msg] Re-reminder disabled: delay_hours=0.')
         return # Re-reminder disabled
-    send_dt = datetime.combine(code_manager.get_expires(), settings_manager.get_change_code_reminder_time()) + timedelta(hours=delay_hours)
-    if send_dt > datetime.now(tz=timezone.utc):
-        qm_msg_scheduler.add_job(change_re_reminder_msg, 'date', run_date=send_dt, args=[send_dt.time()], id=f'change re-reminder {send_dt.strftime("%Y-%m-%d %H:%M:%S")}', replace_existing=True)
+    existing_jobs = [
+        (job.id, job.next_run_time.isoformat() if getattr(job, 'next_run_time', None) is not None else None)
+        for job in qm_msg_scheduler.get_jobs()
+        if job.id.startswith(('change reminder ', 'change re-reminder '))
+    ]
+    print(f'[schedule_change_re_reminder_msg] Existing code-reminder jobs before scheduling: {existing_jobs}')
+    expires = code_manager.get_expires()
+    reminder_time = settings_manager.get_change_code_reminder_time()
+    send_dt = datetime.combine(expires, reminder_time) + timedelta(hours=delay_hours)
+    now = datetime.now(tz=timezone.utc)
+    job_id = f'change re-reminder {send_dt.strftime("%Y-%m-%d %H:%M:%S")}'
+    callback_time = send_dt.time()
+    print(f'[schedule_change_re_reminder_msg] expires={expires.isoformat()}, configured_time={reminder_time.isoformat()}, timezone={reminder_time.tzinfo}, delay_hours={delay_hours}, run_date={send_dt.isoformat()}, callback_msg_time={callback_time.isoformat()} (hour={callback_time.hour}, tzinfo={callback_time.tzinfo!r}), now_utc={now.isoformat()}')
+    if send_dt > now:
+        print(f'[schedule_change_re_reminder_msg] Scheduling {job_id}.')
+        qm_msg_scheduler.add_job(change_re_reminder_msg, 'date', run_date=send_dt, args=[send_dt.time()], id=job_id, replace_existing=True)
+    else:
+        print(f'[schedule_change_re_reminder_msg] Skipping {job_id}: run_date is not later than now_utc.')
 
 
 def schedule_refresh_calendar(update_dt=None):
@@ -375,7 +449,9 @@ def schedule_refresh_calendar(update_dt=None):
         # Truncate time to minutes to prevent drift
         update_dt = update_dt.replace(second=0, microsecond=0)
 
-    update_scheduler.add_job(refresh_calendar, 'date', run_date=update_dt, args=[True], id=f'calendar update {update_dt.strftime("%Y-%m-%d %H:%M:%S")}')
+    job_id = f'calendar update {update_dt.strftime("%Y-%m-%d %H:%M:%S")}'
+    print(f'[schedule_refresh_calendar] Scheduling {job_id}: run_date={update_dt.isoformat()}, callback_args={[True]}')
+    update_scheduler.add_job(refresh_calendar, 'date', run_date=update_dt, args=[True], id=job_id, replace_existing=True)
 
 
 async def band_greeting_msg(band):
