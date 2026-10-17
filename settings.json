@@ -52,12 +52,12 @@
   "min_change_code_days": {
     "value": 3,
     "type": "uint",
-    "description": "Minimum number of days between code change reminders"
+    "description": "Minimum number of calendar days between setting a code and its expiration; a random allowed date is selected from the minimum date through the next 6 calendar days"
   },
   "weekend_change_code_reminder_mode": {
     "value": 0,
     "type": "uint",
-    "description": "Manner to set codes to expire on weekends. One of `0`: Only weekdays, `1`: Include Saturdays, `2`: Include Sundays, `3`: All days of the week"
+    "description": "Allowed expiration days: `0`: weekdays only, `1`: weekdays and Saturday, `2`: weekdays and Sunday, `3`: all days. A disallowed expiration date is moved to the next allowed day"
   },
   "quartermaster_reminder_time_mins": {
     "value": 15,
