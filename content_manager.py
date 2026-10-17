@@ -154,6 +154,9 @@ def format_message(msg, msg_time, data, mention=None, is_rehearsal=False):
 
 
 def split_content(content):
+    if len(content) <= 2000:
+        return [content] if content else []
+
     contents = []
     while len(content) > 2000:
         search_substr = content[:2000]
