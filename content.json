@@ -23,7 +23,7 @@
       "no bands": "There are currently no bands."
     },
     "remove band": "Band \"{name}\" removed.",
-    "change band name": "Name of band \"{old name}\" to \"{new name}\".",
+    "rename band": "Name of band \"{old name}\" to \"{new name}\".",
     "set setting": "Setting `{name}` changed to value {formatted value}.",
     "list settings": {
       "for setting": "**{name}**: {formatted value} ({type})\n{description}",
