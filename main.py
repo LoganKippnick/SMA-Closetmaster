@@ -65,7 +65,7 @@ async def on_message(message):
     content_lower = content.lower()
 
     # Allow anyone to use the roll command or thank the bot
-    if content_lower.startswith('roll'):
+    if commands.command_starts_with(content_lower, 'roll'):
         reply = commands.roll(content)
     elif 'thank' in content_lower and not content_lower.startswith(('list', 'add', 'remove')):
         reply = content_manager.get_thank_you_reply()
@@ -75,66 +75,66 @@ async def on_message(message):
         if (settings_manager.get_admin_role_id() not in user_role_ids and message.author.id != author_user_id) or not message.content.lstrip().startswith(client.user.mention):
             return
 
-        if content_lower.startswith('get code expiration'):
+        if commands.command_starts_with(content_lower, 'get_code_expiration'):
             reply = commands.get_code_expiration()
-        elif content_lower.startswith('get code'):
+        elif commands.command_starts_with(content_lower, 'get_code'):
             reply = commands.get_code()
-        elif content_lower.startswith('update code'):
+        elif commands.command_starts_with(content_lower, 'update_code'):
             reply = commands.update_code()
             schedule_change_reminder_msg()
-        elif content_lower.startswith('set code expiration'):
+        elif commands.command_starts_with(content_lower, 'set_code_expiration'):
             reply = commands.set_code_expiration(content)
             schedule_change_reminder_msg()
-        elif content_lower.startswith('set code'):
+        elif commands.command_starts_with(content_lower, 'set_code'):
             reply = commands.set_code(content)
             schedule_change_reminder_msg()
-        elif content_lower.startswith('add band'):
+        elif commands.command_starts_with(content_lower, 'add_band'):
             [reply, send_greeting] = commands.add_band(content)
             if send_greeting:
                 error = await band_greeting_msg(band_manager.get_band(band_manager.get_bands()[-1]['name']))
             await refresh_calendar()
-        elif content_lower.startswith('list bands'):
+        elif commands.command_starts_with(content_lower, 'list_bands'):
             reply = commands.list_bands()
-        elif content_lower.startswith('remove band'):
+        elif commands.command_starts_with(content_lower, 'remove_band'):
             reply = commands.remove_band(content)
             await refresh_calendar()
-        elif content_lower.startswith('rename band'):
+        elif commands.command_starts_with(content_lower, 'rename_band'):
             reply = commands.rename_band(content)
-        elif content_lower.startswith('next rehearsal'):
+        elif commands.command_starts_with(content_lower, 'next_rehearsal'):
             reply = commands.next_rehearsal()
-        elif content_lower.startswith('next request'):
+        elif commands.command_starts_with(content_lower, 'next_request'):
             reply = commands.next_request()
-        elif content_lower.startswith('set setting'):
+        elif commands.command_starts_with(content_lower, 'set_setting'):
             reply = commands.set_setting(content)
             schedule_change_reminder_msg()
-        elif content_lower.startswith('list settings'):
+        elif commands.command_starts_with(content_lower, 'list_settings'):
             reply = commands.list_settings()
-        elif content_lower.startswith('refresh calendar'):
+        elif commands.command_starts_with(content_lower, 'refresh_calendar'):
             await refresh_calendar()
             reply = commands.refresh_calendar()
-        elif content_lower.startswith('add greeting'):
+        elif commands.command_starts_with(content_lower, 'add_greeting'):
             reply = commands.add_greeting(content)
-        elif content_lower.startswith('remove greeting'):
+        elif commands.command_starts_with(content_lower, 'remove_greeting'):
             reply = commands.remove_greeting(content)
-        elif content_lower.startswith('list greetings'):
+        elif commands.command_starts_with(content_lower, 'list_greetings'):
             reply = commands.list_greetings()
-        elif content_lower.startswith('add farewell'):
+        elif commands.command_starts_with(content_lower, 'add_farewell'):
             reply = commands.add_farewell(content)
-        elif content_lower.startswith('remove farewell'):
+        elif commands.command_starts_with(content_lower, 'remove_farewell'):
             reply = commands.remove_farewell(content)
-        elif content_lower.startswith('list farewells'):
+        elif commands.command_starts_with(content_lower, 'list_farewells'):
             reply = commands.list_farewells()
-        elif content_lower.startswith('add thank you reply'):
+        elif commands.command_starts_with(content_lower, 'add_thank_you_reply'):
             reply = commands.add_thank_you_reply(content)
-        elif content_lower.startswith('remove thank you reply'):
+        elif commands.command_starts_with(content_lower, 'remove_thank_you_reply'):
             reply = commands.remove_thank_you_reply(content)
-        elif content_lower.startswith('list thank you replies'):
+        elif commands.command_starts_with(content_lower, 'list_thank_you_replies'):
             reply = commands.list_thank_you_replies()
-        elif content_lower.startswith('export configs'):
+        elif commands.command_starts_with(content_lower, 'export_configs'):
             reply, files = commands.export_configs()
-        elif content_lower.startswith('list commands') or content_lower.startswith('help'):
+        elif commands.command_starts_with(content_lower, 'list_commands') or commands.command_starts_with(content_lower, 'help'):
             reply = commands.list_commands()
-        elif content_lower.startswith('quit'):
+        elif commands.command_starts_with(content_lower, 'quit'):
             exit(0)
         else:
             reply = commands.bad_command()

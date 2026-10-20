@@ -9,6 +9,17 @@ import settings_manager
 
 
 commands_data = json.load(open('commands.json', 'r'))
+command_ids = {command['name']: command_id for command_id, command in commands_data.items()}
+if len(command_ids) != len(commands_data):
+    raise ValueError('Command names in commands.json must be unique.')
+
+
+def get_command_name(command_id):
+    return commands_data[command_id]['name']
+
+
+def command_starts_with(content, command_id):
+    return content.lower().startswith(get_command_name(command_id).lower())
 
 
 def parse_args(cmd_name, content, expected_num_args=None, max_num_args=None, min_num_args=None):
@@ -66,13 +77,14 @@ def parse_args(cmd_name, content, expected_num_args=None, max_num_args=None, min
 
 def throw_error(cmd_name, error):
     params = ''
-    if 'params' in commands_data[cmd_name].keys():
-        params = commands_data[cmd_name]['params']
+    command_data = commands_data[command_ids[cmd_name]]
+    if 'params' in command_data.keys():
+        params = command_data['params']
     return content_manager.format_command(content_manager.get_command('error'), {'error': error.args[0], 'name': cmd_name, 'params': params})
 
 
 def next_rehearsal():
-    cmd_name = 'next rehearsal'
+    cmd_name = get_command_name('next_rehearsal')
     next_rehearsals = gear_calendar.get_next_rehearsal()
 
     if len(next_rehearsals) == 0:
@@ -92,7 +104,7 @@ def next_rehearsal():
 
 
 def next_request():
-    cmd_name = 'next request'
+    cmd_name = get_command_name('next_request')
     next_requests = gear_calendar.get_next_request()
 
     if len(next_requests) == 0:
@@ -112,40 +124,43 @@ def next_request():
 
 
 def get_code():
-    return content_manager.format_command(content_manager.get_command('get code'), {'code': code_manager.get_curr_code()})
+    cmd_name = get_command_name('get_code')
+    return content_manager.format_command(content_manager.get_command(cmd_name), {'code': code_manager.get_curr_code()})
 
 
 def get_code_expiration():
-    return content_manager.format_command(content_manager.get_command('get code expiration'), {'expiration': code_manager.get_expires()})
+    cmd_name = get_command_name('get_code_expiration')
+    return content_manager.format_command(content_manager.get_command(cmd_name), {'expiration': code_manager.get_expires()})
 
 
 def update_code():
+    cmd_name = get_command_name('update_code')
     code_manager.apply_next_code()
-    return content_manager.format_command(content_manager.get_command('update code'), {'code': code_manager.get_curr_code(), 'expiration': code_manager.get_expires()})
+    return content_manager.format_command(content_manager.get_command(cmd_name), {'code': code_manager.get_curr_code(), 'expiration': code_manager.get_expires()})
 
 
 def set_code(message):
-    cmd_name = 'set code'
+    cmd_name = get_command_name('set_code')
     try:
         code = parse_args(cmd_name, message, expected_num_args=1)[0]
         code_manager.set_code(code)
-        return content_manager.format_command(content_manager.get_command('set code'), {'code': code_manager.get_curr_code(), 'expiration': code_manager.get_expires()})
+        return content_manager.format_command(content_manager.get_command(cmd_name), {'code': code_manager.get_curr_code(), 'expiration': code_manager.get_expires()})
     except ValueError as e:
         return throw_error(cmd_name, e)
 
 
 def set_code_expiration(message):
-    cmd_name = 'set code expiration'
+    cmd_name = get_command_name('set_code_expiration')
     try:
         set_expires = parse_args(cmd_name, message, expected_num_args=1)[0]
         code_manager.set_expires(set_expires)
-        return content_manager.format_command(content_manager.get_command('set code expiration'), {'expiration': code_manager.get_expires()})
+        return content_manager.format_command(content_manager.get_command(cmd_name), {'expiration': code_manager.get_expires()})
     except ValueError as e:
         return throw_error(cmd_name, e)
 
 
 def add_band(message):
-    cmd_name = 'add band'
+    cmd_name = get_command_name('add_band')
     try:
         args = parse_args(cmd_name, message, max_num_args=4, min_num_args=3)
         name = args[0]
@@ -155,13 +170,13 @@ def add_band(message):
         if len(args) == 4 and args[3].lower() != 'true':
             send_greeting = False
         band_manager.add_band(name, role, channel)
-        return [content_manager.format_command(content_manager.get_command('add band'), {'name': name}), send_greeting]
+        return [content_manager.format_command(content_manager.get_command(cmd_name), {'name': name}), send_greeting]
     except ValueError as e:
         return [throw_error(cmd_name, e), False]
 
 
 def list_bands():
-    cmd_name = 'list bands'
+    cmd_name = get_command_name('list_bands')
     bands = band_manager.get_bands()
 
     if len(bands) == 0:
@@ -182,17 +197,17 @@ def list_bands():
 
 
 def rename_band(message):
-    cmd_name = 'rename band'
+    cmd_name = get_command_name('rename_band')
     try:
         [old_name, new_name] = parse_args(cmd_name, message, expected_num_args=2)
         band_manager.change_name(old_name, new_name)
-        return content_manager.format_command(content_manager.get_command('rename band'), {'old name': old_name, 'new name': new_name})
+        return content_manager.format_command(content_manager.get_command(cmd_name), {'old name': old_name, 'new name': new_name})
     except ValueError as e:
         return throw_error(cmd_name, e)
 
 
 def remove_band(message):
-    cmd_name = 'remove band'
+    cmd_name = get_command_name('remove_band')
     try:
         band_name = parse_args(cmd_name, message, expected_num_args=1)[0]
         band_manager.remove_band(band_name)
@@ -202,7 +217,7 @@ def remove_band(message):
 
 
 def set_setting(message):
-    cmd_name = 'set setting'
+    cmd_name = get_command_name('set_setting')
     set_value = None
     setting_name = ''
 
@@ -216,7 +231,7 @@ def set_setting(message):
 
 
 def list_settings():
-    cmd_name = 'list settings'
+    cmd_name = get_command_name('list_settings')
     settings_data = settings_manager.get_settings()
     content_data = content_manager.get_command(cmd_name)
     settings_msgs = []
@@ -244,11 +259,11 @@ def list_settings():
 
 
 def refresh_calendar():
-    return content_manager.get_command('refresh calendar')
+    return content_manager.get_command(get_command_name('refresh_calendar'))
 
 
 def add_greeting(message):
-    cmd_name = 'add greeting'
+    cmd_name = get_command_name('add_greeting')
     try:
         args = parse_args(cmd_name, message, max_num_args=2, min_num_args=1)
         greeting = args[0]
@@ -260,7 +275,7 @@ def add_greeting(message):
 
 
 def remove_greeting(message):
-    cmd_name = 'remove greeting'
+    cmd_name = get_command_name('remove_greeting')
     try:
         args = parse_args(cmd_name, message, expected_num_args=1)
         greeting = args[0]
@@ -271,7 +286,7 @@ def remove_greeting(message):
 
 
 def list_greetings():
-    cmd_name = 'list greetings'
+    cmd_name = get_command_name('list_greetings')
     greetings_data = content_manager.get_greetings()
     content_data = content_manager.get_command(cmd_name)
     categories = []
@@ -285,7 +300,7 @@ def list_greetings():
 
 
 def add_farewell(message):
-    cmd_name = 'add farewell'
+    cmd_name = get_command_name('add_farewell')
     try:
         args = parse_args(cmd_name, message, max_num_args=2, min_num_args=1)
         farewell = args[0]
@@ -297,7 +312,7 @@ def add_farewell(message):
 
 
 def remove_farewell(message):
-    cmd_name = 'remove farewell'
+    cmd_name = get_command_name('remove_farewell')
     try:
         args = parse_args(cmd_name, message, expected_num_args=1)
         farewell = args[0]
@@ -308,7 +323,7 @@ def remove_farewell(message):
 
 
 def list_farewells():
-    cmd_name = 'list farewells'
+    cmd_name = get_command_name('list_farewells')
     farewells_data = content_manager.get_farewells()
     content_data = content_manager.get_command(cmd_name)
     categories = []
@@ -322,7 +337,7 @@ def list_farewells():
 
 
 def add_thank_you_reply(message):
-    cmd_name = 'add thank you reply'
+    cmd_name = get_command_name('add_thank_you_reply')
     try:
         args = parse_args(cmd_name, message, expected_num_args=1)
         reply = args[0]
@@ -332,7 +347,7 @@ def add_thank_you_reply(message):
         return throw_error(cmd_name, e)
 
 def remove_thank_you_reply(message):
-    cmd_name = 'remove thank you reply'
+    cmd_name = get_command_name('remove_thank_you_reply')
     try:
         args = parse_args(cmd_name, message, expected_num_args=1)
         reply = args[0]
@@ -343,7 +358,7 @@ def remove_thank_you_reply(message):
 
 
 def list_thank_you_replies():
-    cmd_name = 'list thank you replies'
+    cmd_name = get_command_name('list_thank_you_replies')
     replies_data = content_manager.get_thank_you_replies()
     content_data = content_manager.get_command(cmd_name)
     replies = []
@@ -353,22 +368,23 @@ def list_thank_you_replies():
 
 
 def export_configs():
-    cmd_name = 'export configs'
+    cmd_name = get_command_name('export_configs')
     jsons = ['bands.json', 'commands.json', 'content.json', 'lockbox_code.json', 'settings.json']
     return content_manager.get_command(cmd_name), jsons
 
 
 def list_commands():
-    cmd_name = 'list commands'
+    cmd_name = get_command_name('list_commands')
     commands_msgs = []
     commands = []
     len_msg = 0
-    for command in commands_data.keys():
-        command_data = commands_data[command]
+    for command_data in commands_data.values():
+        if command_data.get('hidden', False):
+            continue
         params = ''
         if 'params' in command_data.keys():
             params = command_data['params']
-        command_content = content_manager.format_command(content_manager.get_command(cmd_name)['for command'], {'name': command, 'params': params, 'description': command_data['description']})
+        command_content = content_manager.format_command(content_manager.get_command(cmd_name)['for command'], {'name': command_data['name'], 'params': params, 'description': command_data['description']})
         if len_msg + len(command_content) + (len(content_manager.get_command(cmd_name)['join commands']) * len(commands)) < 2000:
             commands.append(command_content)
             len_msg += len(command_content)
@@ -385,7 +401,7 @@ def bad_command():
 
 
 def roll(message):
-    cmd_name = 'roll'
+    cmd_name = get_command_name('roll')
     try:
         args = parse_args(cmd_name, message, min_num_args=0, max_num_args=2)
         size = 20
